@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Ново произшествие{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Ново произшествие</h1>
+        <hr>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Тип произшествие</label>
+                        <select class="form-select">
+                            <option>Пожар</option>
+                            <option>Спасителна операция</option>
+                            <option>Друго</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Адрес</label>
+                        <input type="text" class="form-control" placeholder="Въведете адрес">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Запази
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Карта</div>
+            <div class="card-body">
+                <div id="map" style="height: 300px; background: #e9ecef; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-muted">Карта ще се зареди тук</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

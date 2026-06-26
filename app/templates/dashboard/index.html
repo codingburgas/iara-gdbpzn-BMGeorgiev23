@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Табло{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-4">Добре дошли в ГДПБЗН</h1>
+        <p class="lead">Система за управление на произшествия и пожарни екипи</p>
+        <hr>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Активни произшествия</h5>
+                <h2 class="display-4">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Налични екипи</h5>
+                <h2 class="display-4">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">На служба</h5>
+                <h2 class="display-4">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">Спешни сигнали</h5>
+                <h2 class="display-4">0</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-clock"></i> Последна активност</div>
+            <div class="card-body">
+                <p class="text-muted">Все още няма активност в системата.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

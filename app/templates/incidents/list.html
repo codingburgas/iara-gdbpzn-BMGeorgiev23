@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Произшествия{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Произшествия</h1>
+        <p class="lead">Списък на всички регистрирани произшествия</p>
+        <hr>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Все още няма регистрирани произшествия.
+        </div>
+        <a href="{{ url_for('incidents.create_incident') }}" class="btn btn-danger">
+            <i class="fas fa-plus"></i> Ново произшествие
+        </a>
+    </div>
+</div>
+{% endblock %}
