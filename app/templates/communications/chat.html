@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Чат{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Чат</h1>
+        <p class="text-muted">Комуникация между екипите</p>
+    </div>
+    <a href="{{ url_for('communications.message_templates') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-list"></i> Шаблони
+    </a>
+</div>
+
+<div class="row">
+    <!-- Chat Sidebar -->
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-comments"></i> Канали
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action active" data-incident-id="0">
+                        <i class="fas fa-bullhorn"></i> Общ канал
+                    </a>
+                    {% for incident in incidents %}
+                    <a href="#" class="list-group-item list-group-item-action" data-incident-id="{{ incident.id }}">
+                        <span class="badge bg-danger me-1">{{ incident.get_type_display() }}</span>
+                        {{ incident.title[:30] }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Messages -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <span id="chat-title"><i class="fas fa-bullhorn"></i> Общ канал</span>
+                <span class="badge bg-success ms-2">На линия</span>
+            </div>
+            <div class="card-body" id="chat-messages" style="height: 400px; overflow-y: auto;">
+                <div class="text-center text-muted py-4">
+                    <i class="fas fa-comments" style="font-size: 2rem;"></i>
+                    <p class="mt-2">Изберете канал за да започнете</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <button class="btn btn-outline-secondary" id="template-btn" title="Шаблони">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <input type="text" class="form-control" id="message-input" placeholder="Напишете съобщение...">
+                    <button class="btn btn-danger" id="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div id="template-dropdown" class="mt-2" style="display: none;">
+                    <select class="form-select form-select-sm" id="template-select">
+                        <option value="">Изберете шаблон...</option>
+                        {% for template in templates %}
+                        <option value="{{ template.content }}">{{ template.template_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Info -->
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6>Участници</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-success"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Онлайн</span>
+                        <span class="badge bg-secondary"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Извън линия</span>
+                    </div>
+                </div>
+                <hr>
+                <div>
+                    <h6>Бързи действия</h6>
+                    <button class="btn btn-sm btn-outline-danger w-100 mb-2" onclick="sendEmergencyMessage()">
+                        <i class="fas fa-exclamation-triangle"></i> Спешно съобщение
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary w-100" onclick="shareLocation()">
+                        <i class="fas fa-map-marker-alt"></i> Сподели локация
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/communications.js') }}"></script>
+<script>
+    // Initialize chat functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeChat();
+    });
+</script>
+{% endblock %}

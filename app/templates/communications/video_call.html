@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Видео обаждане{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Видео обаждане</h1>
+        <p class="text-muted">Видео връзка с екипи на терен</p>
+    </div>
+    <div>
+        <span class="badge bg-success p-2">
+            <i class="fas fa-circle" style="font-size: 0.6rem;"></i> Свързан
+        </span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div id="video-container" style="height: 400px; background: #1a1a2e; display: flex; align-items: center; justify-content: center; border-radius: 0.375rem;">
+                    <div class="text-center text-white">
+                        <i class="fas fa-video" style="font-size: 4rem;"></i>
+                        <p class="mt-3">Видео връзка</p>
+                        <small class="text-muted">Чакане на участници...</small>
+                    </div>
+                </div>
+                
+                <!-- Video Controls -->
+                <div class="mt-3 d-flex justify-content-center gap-2">
+                    <button class="btn btn-outline-danger" id="toggle-audio">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" id="toggle-video">
+                        <i class="fas fa-video"></i>
+                    </button>
+                    <button class="btn btn-danger" id="end-call">
+                        <i class="fas fa-phone-slash"></i> Край
+                    </button>
+                    <button class="btn btn-outline-primary" id="share-screen">
+                        <i class="fas fa-desktop"></i> Сподели екран
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header">
+                <i class="fas fa-users"></i> Участници
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-circle text-success me-2"></i>
+                            <span class="fw-bold">Оперативен център</span>
+                        </div>
+                        <span class="badge bg-success">Онлайн</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-circle text-success me-2"></i>
+                            {{ current_user.name }}
+                        </div>
+                        <span class="badge bg-success">Вие</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-circle text-secondary me-2"></i>
+                            Екип "Орел"
+                        </div>
+                        <span class="badge bg-warning text-dark">На връзка</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-0">
+                    <i class="fas fa-lock me-1"></i> Връзката е криптирана
+                </p>
+                <p class="small text-muted mb-0">
+                    <i class="fas fa-signal me-1"></i> Качество: Отлично
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/communications.js') }}"></script>
+<script>
+    // Video call functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeVideoCall();
+    });
+</script>
+{% endblock %}
