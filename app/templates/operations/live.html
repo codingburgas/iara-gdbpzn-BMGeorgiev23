@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Оперативен център{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Оперативен център</h1>
+        <p class="text-muted">Наблюдение на активни произшествия и екипи в реално време</p>
+    </div>
+    <div>
+        <span class="badge bg-success p-2 me-2">
+            <i class="fas fa-circle" style="font-size: 0.6rem;"></i> Система активна
+        </span>
+        <span class="text-muted small">{{ now.strftime('%d.%m.%Y %H:%M') }}</span>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Map Section -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marked-alt"></i> Карта на операциите
+            </div>
+            <div class="card-body">
+                <div id="operations-map" style="height: 500px; background: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 0.375rem;">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-map" style="font-size: 3rem;"></i>
+                        <p class="mt-2">Интерактивна карта</p>
+                        <small>Leaflet.js интеграция</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4 mb-4">
+        <!-- Active Incidents -->
+        <div class="card mb-3">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-fire"></i> Активни произшествия
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for incident in incidents %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-danger me-1">{{ incident.get_type_display() }}</span>
+                                <span class="fw-bold">{{ incident.title }}</span>
+                            </div>
+                            <span class="badge bg-warning text-dark">{{ incident.get_status_display() }}</span>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-map-marker-alt"></i> {{ incident.address }}
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-check-circle text-success"></i> Няма активни произшествия
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Teams Status -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-users"></i> Статус на екипите
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for team in teams %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-circle me-1"></i>
+                            {{ team.name }}
+                        </div>
+                        <span class="badge {% if team.status == 'active' %}bg-success{% elif team.status == 'on_mission' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                            {{ team.get_status_display() }}
+                        </span>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        Няма активни екипи
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mt-2">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5 class="card-title">Активни</h5>
+                <h2 class="display-6">{{ incidents|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Екипи на линия</h5>
+                <h2 class="display-6">{{ teams|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">В процес</h5>
+                <h2 class="display-6">{{ incidents|selectattr('status', 'equalto', 'in_progress')|list|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Общо днес</h5>
+                <h2 class="display-6">{{ incidents|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/operations.js') }}"></script>
+<script>
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %}

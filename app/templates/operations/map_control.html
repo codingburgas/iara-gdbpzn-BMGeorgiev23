@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Карта на операциите{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Карта на операциите</h1>
+        <p class="text-muted">Интерактивна карта с всички произшествия и екипи</p>
+    </div>
+    <div>
+        <button class="btn btn-outline-secondary btn-sm" onclick="centerMap()">
+            <i class="fas fa-crosshairs"></i> Центрирай
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="refreshMap()">
+            <i class="fas fa-sync"></i> Обнови
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div id="full-map" style="height: 600px; background: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 0.375rem;">
+            <div class="text-center text-muted">
+                <i class="fas fa-map" style="font-size: 4rem;"></i>
+                <p class="mt-3">Интерактивна карта</p>
+                <small>Зареждане на карта с Leaflet.js...</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-3">
+                    <span><span class="badge bg-danger">●</span> Активно произшествие</span>
+                    <span><span class="badge bg-warning text-dark">●</span> В процес</span>
+                    <span><span class="badge bg-success">●</span> Разрешено</span>
+                    <span><span class="badge bg-primary">●</span> Екип на линия</span>
+                    <span><span class="badge bg-info text-dark">●</span> Екип на мисия</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/operations.js') }}"></script>
+<script>
+    // Map functions
+    function centerMap() {
+        console.log('Centering map...');
+        // In production, this would center the Leaflet map
+    }
+    
+    function refreshMap() {
+        console.log('Refreshing map data...');
+        // In production, this would reload markers
+    }
+</script>
+{% endblock %}

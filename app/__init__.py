@@ -37,12 +37,16 @@ def create_app(config_object='config.Config'):
     from app.blueprints.dashboard import dashboard_bp
     from app.blueprints.incidents import incidents_bp
     from app.blueprints.teams import teams_bp
+    from app.blueprints.operations import operations_bp
+
+
     
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(dashboard_bp, url_prefix='/')  # Keep this as '/'
+    app.register_blueprint(dashboard_bp, url_prefix='/')
     app.register_blueprint(incidents_bp, url_prefix='/incidents')
     app.register_blueprint(teams_bp, url_prefix='/teams')
+    app.register_blueprint(operations_bp, url_prefix='/operations')
     
     @app.errorhandler(404)
     def not_found(error):

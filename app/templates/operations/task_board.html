@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Табло за задачи{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Табло за задачи</h1>
+        <p class="text-muted">Управление на оперативни задачи</p>
+    </div>
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+        <i class="fas fa-plus"></i> Нова задача
+    </button>
+</div>
+
+<div class="row">
+    <!-- Todo Column -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-clock"></i> За изпълнение
+                <span class="badge bg-light text-dark ms-2">{{ incidents|selectattr('status', 'equalto', 'active')|list|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for incident in incidents if incident.status == 'active' %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge bg-danger me-1">{{ incident.get_priority_display() }}</span>
+                                <span class="fw-bold">{{ incident.title }}</span>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-map-marker-alt"></i> {{ incident.address }}
+                        </small>
+                        <div class="mt-2">
+                            <span class="badge bg-secondary">{{ incident.get_type_display() }}</span>
+                            <a href="{{ url_for('incidents.detail_incident', incident_id=incident.id) }}" class="btn btn-sm btn-outline-primary float-end">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-check-circle text-success"></i> Няма задачи
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- In Progress Column -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-spinner"></i> В процес
+                <span class="badge bg-dark text-white ms-2">{{ incidents|selectattr('status', 'equalto', 'in_progress')|list|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for incident in incidents if incident.status == 'in_progress' %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge bg-warning text-dark me-1">{{ incident.get_priority_display() }}</span>
+                                <span class="fw-bold">{{ incident.title }}</span>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-users"></i> {{ incident.assigned_team.name if incident.assigned_team else 'Без екип' }}
+                        </small>
+                        <div class="mt-2">
+                            <span class="badge bg-secondary">{{ incident.get_type_display() }}</span>
+                            <a href="{{ url_for('incidents.detail_incident', incident_id=incident.id) }}" class="btn btn-sm btn-outline-primary float-end">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-info-circle"></i> Няма задачи в процес
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Done Column -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-check-circle"></i> Завършени
+                <span class="badge bg-light text-dark ms-2">{{ incidents|selectattr('status', 'equalto', 'resolved')|list|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for incident in incidents if incident.status == 'resolved' %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge bg-success me-1">{{ incident.get_priority_display() }}</span>
+                                <span class="fw-bold">{{ incident.title }}</span>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="far fa-clock"></i> {{ incident.resolved_at.strftime('%d.%m.%Y %H:%M') if incident.resolved_at else 'Завършен' }}
+                        </small>
+                        <div class="mt-2">
+                            <span class="badge bg-secondary">{{ incident.get_type_display() }}</span>
+                            <a href="{{ url_for('incidents.detail_incident', incident_id=incident.id) }}" class="btn btn-sm btn-outline-primary float-end">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-inbox"></i> Няма завършени задачи
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Нова задача</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('incidents.create_incident') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Заглавие</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Тип</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="fire">Пожар</option>
+                            <option value="rescue">Спасителна</option>
+                            <option value="other">Друго</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="critical">Критичен</option>
+                            <option value="high">Висок</option>
+                            <option value="medium" selected>Среден</option>
+                            <option value="low">Нисък</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Адрес</label>
+                        <input type="text" class="form-control" id="address" name="address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="submit" class="btn btn-danger">Създай</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
