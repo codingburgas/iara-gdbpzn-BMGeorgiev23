@@ -1,55 +1,175 @@
 {% extends "base.html" %}
+
 {% block title %}Табло{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="display-4">Добре дошли в ГДПБЗН</h1>
-        <p class="lead">Система за управление на произшествия и пожарни екипи</p>
-        <hr>
-    </div>
-</div>
-<div class="row mt-4">
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h5 class="card-title">Активни произшествия</h5>
-                <h2 class="display-4">0</h2>
-            </div>
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-6 fw-bold">Табло</h1>
+            <p class="text-muted">Добре дошли, {{ current_user.name }}!</p>
+        </div>
+        <div>
+            <span class="badge bg-success p-2">
+                <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>
+                На линия
+            </span>
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h5 class="card-title">Налични екипи</h5>
-                <h2 class="display-4">0</h2>
-            </div>
+
+    <!-- Stats Cards -->
+    {% include "dashboard/components/stats_cards.html" %}
+
+    <!-- Main Content Row -->
+    <div class="row mt-4">
+        <!-- Active Incidents -->
+        <div class="col-lg-8 mb-4">
+            {% include "dashboard/components/active_incidents.html" %}
+        </div>
+        
+        <!-- Team Status -->
+        <div class="col-lg-4 mb-4">
+            {% include "dashboard/components/team_status.html" %}
         </div>
     </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <h5 class="card-title">На служба</h5>
-                <h2 class="display-4">0</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <h5 class="card-title">Спешни сигнали</h5>
-                <h2 class="display-4">0</h2>
-            </div>
+
+    <!-- Recent Activity -->
+    <div class="row mt-2">
+        <div class="col-12">
+            {% include "dashboard/components/recent_activity.html" %}
         </div>
     </div>
 </div>
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">Последна активност</div>
-            <div class="card-body">
-                <p class="text-muted">Няма активност в системата.</p>
-            </div>
-        </div>
-    </div>
-</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-container {
+    animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+.stat-card .stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.stat-card .stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.activity-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background-color: var(--bg-secondary);
+    padding-left: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-badge.active { background: #d4edda; color: #155724; }
+.status-badge.inactive { background: #f8d7da; color: #721c24; }
+.status-badge.away { background: #fff3cd; color: #856404; }
+
+.incident-item {
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid transparent;
+    transition: background-color 0.2s ease;
+}
+
+.incident-item:hover {
+    background-color: var(--bg-secondary);
+}
+
+.incident-item.critical { border-left-color: #dc3545; }
+.incident-item.high { border-left-color: #fd7e14; }
+.incident-item.medium { border-left-color: #ffc107; }
+.incident-item.low { border-left-color: #28a745; }
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+}
+
+.card-header .btn-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.card-header .btn-link:hover {
+    color: var(--text-primary);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // Real-time updates simulation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update stats every 30 seconds (simulated)
+        setInterval(function() {
+            // In production, this would fetch from an API
+            console.log('Refreshing dashboard data...');
+        }, 30000);
+    });
+</script>
 {% endblock %}

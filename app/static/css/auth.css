@@ -1,0 +1,92 @@
+/* Authentication Pages Styles */
+.auth-card {
+    max-width: 440px;
+    margin: 2rem auto;
+}
+
+.auth-card .card-header {
+    border-radius: 0.5rem 0.5rem 0 0;
+    padding: 1.5rem;
+}
+
+.auth-card .card-body {
+    padding: 2rem;
+}
+
+.auth-card .form-control {
+    border-radius: 0.375rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-card .form-control:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+}
+
+.auth-card .btn-danger {
+    padding: 0.6rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-card .btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.auth-card .btn-danger:active {
+    transform: translateY(0);
+}
+
+.auth-card a {
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-card a:hover {
+    text-decoration: underline;
+}
+
+/* Password strength indicator */
+.password-strength {
+    height: 4px;
+    margin-top: 0.25rem;
+    border-radius: 2px;
+    background-color: var(--border-color);
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+.password-strength .bar {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+/* Form validation styles */
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid,
+.form-control.is-valid {
+    border-color: #198754;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .auth-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .auth-card {
+        margin: 1rem;
+    }
+}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Детайли на произшествие{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">{{ incident.title }}</h1>
+        <p class="text-muted">Произшествие #{{ incident.id }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('incidents.edit_incident', incident_id=incident.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-edit"></i> Редактирай
+        </a>
+        <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Тип</div>
+                    <div class="col-sm-8">{{ incident.get_type_display() }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Статус</div>
+                    <div class="col-sm-8">
+                        {% if incident.status == 'active' %}
+                            <span class="badge bg-danger">Активен</span>
+                        {% elif incident.status == 'in_progress' %}
+                            <span class="badge bg-warning text-dark">В процес</span>
+                        {% elif incident.status == 'resolved' %}
+                            <span class="badge bg-success">Разрешен</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Затворен</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Приоритет</div>
+                    <div class="col-sm-8">
+                        {% if incident.priority == 'critical' %}
+                            <span class="badge bg-danger">Критичен</span>
+                        {% elif incident.priority == 'high' %}
+                            <span class="badge bg-warning text-dark">Висок</span>
+                        {% elif incident.priority == 'medium' %}
+                            <span class="badge bg-info text-dark">Среден</span>
+                        {% else %}
+                            <span class="badge bg-success">Нисък</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Адрес</div>
+                    <div class="col-sm-8">{{ incident.address }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Назначен екип</div>
+                    <div class="col-sm-8">{{ incident.assigned_team.name if incident.assigned_team else 'Не е назначен' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Създадено от</div>
+                    <div class="col-sm-8">{{ incident.created_by.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Създадено на</div>
+                    <div class="col-sm-8">{{ incident.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                </div>
+                {% if incident.resolved_at %}
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Разрешено на</div>
+                    <div class="col-sm-8">{{ incident.resolved_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-sm-4 fw-bold">Описание</div>
+                    <div class="col-sm-8">{{ incident.description or 'Няма описание.' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marker-alt"></i> Местоположение
+            </div>
+            <div class="card-body">
+                <div id="incident-map" style="height: 250px; background: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 0.375rem;">
+                    <span class="text-muted">Карта</span>
+                </div>
+                {% if incident.latitude and incident.longitude %}
+                    <p class="small text-muted mt-2">
+                        <i class="fas fa-globe"></i> Координати: {{ incident.latitude }}, {{ incident.longitude }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

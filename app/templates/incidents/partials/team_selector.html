@@ -1,0 +1,6 @@
+<select class="form-select" id="team_selector" name="assigned_team_id">
+    <option value="">Изберете екип...</option>
+    {% for team in teams %}
+        <option value="{{ team.id }}">{{ team.name }}</option>
+    {% endfor %}
+</select>

@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Детайли на екип{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">{{ team.name }}</h1>
+        <p class="text-muted">Екип #{{ team.id }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('teams.edit_team', team_id=team.id) }}" class="btn btn-outline-secondary">
+            <i class="fas fa-edit"></i> Редактирай
+        </a>
+        <a href="{{ url_for('teams.list_teams') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Назад
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация за екипа
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Статус</div>
+                    <div class="col-sm-8">
+                        {% if team.status == 'active' %}
+                            <span class="badge bg-success">Активен</span>
+                        {% elif team.status == 'on_mission' %}
+                            <span class="badge bg-warning text-dark">На мисия</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Неактивен</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Членове</div>
+                    <div class="col-sm-8">{{ members|length }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Създаден на</div>
+                    <div class="col-sm-8">{{ team.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 fw-bold">Описание</div>
+                    <div class="col-sm-8">{{ team.description or 'Няма описание.' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-users"></i> Членове на екипа</span>
+                <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#addMemberModal">
+                    <i class="fas fa-user-plus"></i> Добави
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Име</th>
+                                <th>Имейл</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                            <tr>
+                                <td>{{ member.name }}</td>
+                                <td>{{ member.email }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('teams.remove_member', team_id=team.id, user_id=member.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Сигурни ли сте?')">
+                                            <i class="fas fa-user-minus"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-3 text-muted">
+                                    Няма членове в този екип.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal fade" id="addMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавяне на член</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('teams.add_member', team_id=team.id) }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="user_id" class="form-label">Изберете служител</label>
+                        <select class="form-select" id="user_id" name="user_id" required>
+                            <option value="">Изберете...</option>
+                            {% for user in users %}
+                                {% if not user.team_id or user.team_id == team.id %}
+                                    <option value="{{ user.id }}">{{ user.name }} ({{ user.email }})</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="submit" class="btn btn-danger">Добави</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

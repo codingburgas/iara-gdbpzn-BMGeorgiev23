@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Редактиране на произшествие{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Редактиране на произшествие</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Заглавие <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ incident.title }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Тип</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="fire" {% if incident.type == 'fire' %}selected{% endif %}>Пожар</option>
+                            <option value="rescue" {% if incident.type == 'rescue' %}selected{% endif %}>Спасителна операция</option>
+                            <option value="other" {% if incident.type == 'other' %}selected{% endif %}>Друго</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="critical" {% if incident.priority == 'critical' %}selected{% endif %}>Критичен</option>
+                            <option value="high" {% if incident.priority == 'high' %}selected{% endif %}>Висок</option>
+                            <option value="medium" {% if incident.priority == 'medium' %}selected{% endif %}>Среден</option>
+                            <option value="low" {% if incident.priority == 'low' %}selected{% endif %}>Нисък</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {% if incident.status == 'active' %}selected{% endif %}>Активен</option>
+                            <option value="in_progress" {% if incident.status == 'in_progress' %}selected{% endif %}>В процес</option>
+                            <option value="resolved" {% if incident.status == 'resolved' %}selected{% endif %}>Разрешен</option>
+                            <option value="closed" {% if incident.status == 'closed' %}selected{% endif %}>Затворен</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Адрес <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="address" name="address" value="{{ incident.address }}" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="latitude" class="form-label">Географска ширина</label>
+                            <input type="text" class="form-control" id="latitude" name="latitude" value="{{ incident.latitude or '' }}" placeholder="42.6977">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="longitude" class="form-label">Географска дължина</label>
+                            <input type="text" class="form-control" id="longitude" name="longitude" value="{{ incident.longitude or '' }}" placeholder="23.3219">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="assigned_team_id" class="form-label">Назначен екип</label>
+                        <select class="form-select" id="assigned_team_id" name="assigned_team_id">
+                            <option value="">Изберете екип...</option>
+                            {% for team in teams %}
+                                <option value="{{ team.id }}" {% if incident.assigned_team_id == team.id %}selected{% endif %}>{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ incident.description }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Запази промените
+                    </button>
+                    <a href="{{ url_for('incidents.detail_incident', incident_id=incident.id) }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

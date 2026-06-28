@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Редактиране на екип{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Редактиране на екип</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име на екипа <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ team.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {% if team.status == 'active' %}selected{% endif %}>Активен</option>
+                            <option value="on_mission" {% if team.status == 'on_mission' %}selected{% endif %}>На мисия</option>
+                            <option value="inactive" {% if team.status == 'inactive' %}selected{% endif %}>Неактивен</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ team.description }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Запази промените
+                    </button>
+                    <a href="{{ url_for('teams.detail_team', team_id=team.id) }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

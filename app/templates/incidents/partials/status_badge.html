@@ -1,0 +1,9 @@
+{% if status == 'active' %}
+    <span class="badge bg-danger">Активен</span>
+{% elif status == 'in_progress' %}
+    <span class="badge bg-warning text-dark">В процес</span>
+{% elif status == 'resolved' %}
+    <span class="badge bg-success">Разрешен</span>
+{% else %}
+    <span class="badge bg-secondary">Затворен</span>
+{% endif %}

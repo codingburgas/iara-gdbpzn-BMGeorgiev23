@@ -1,45 +1,96 @@
 {% extends "base.html" %}
+
 {% block title %}Ново произшествие{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1>Ново произшествие</h1>
+        <h1 class="display-6 fw-bold">Ново произшествие</h1>
         <hr>
     </div>
 </div>
+
 <div class="row mt-4">
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form>
+                <form method="POST">
                     <div class="mb-3">
-                        <label class="form-label">Тип произшествие</label>
-                        <select class="form-select">
-                            <option>Пожар</option>
-                            <option>Спасителна операция</option>
-                            <option>Друго</option>
+                        <label for="title" class="form-label">Заглавие <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Тип</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="fire">Пожар</option>
+                            <option value="rescue">Спасителна операция</option>
+                            <option value="other">Друго</option>
                         </select>
                     </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Адрес</label>
-                        <input type="text" class="form-control" placeholder="Въведете адрес">
+                        <label for="priority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="critical">Критичен</option>
+                            <option value="high">Висок</option>
+                            <option value="medium" selected>Среден</option>
+                            <option value="low">Нисък</option>
+                        </select>
                     </div>
+                    
                     <div class="mb-3">
-                        <label class="form-label">Описание</label>
-                        <textarea class="form-control" rows="3"></textarea>
+                        <label for="address" class="form-label">Адрес <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="address" name="address" placeholder="ул. Примерна 123, София" required>
                     </div>
-                    <button type="submit" class="btn btn-danger">Запази</button>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="latitude" class="form-label">Географска ширина</label>
+                            <input type="text" class="form-control" id="latitude" name="latitude" placeholder="42.6977">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="longitude" class="form-label">Географска дължина</label>
+                            <input type="text" class="form-control" id="longitude" name="longitude" placeholder="23.3219">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="assigned_team_id" class="form-label">Назначен екип</label>
+                        <select class="form-select" id="assigned_team_id" name="assigned_team_id">
+                            <option value="">Изберете екип...</option>
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Създай
+                    </button>
+                    <a href="{{ url_for('incidents.list_incidents') }}" class="btn btn-secondary">Отказ</a>
                 </form>
             </div>
         </div>
     </div>
+    
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header">Карта</div>
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация
+            </div>
             <div class="card-body">
-                <div id="map" style="height: 300px; background: #e9ecef; display: flex; align-items: center; justify-content: center;">
-                    <span class="text-muted">Карта</span>
-                </div>
+                <p class="text-muted small">Попълнете всички задължителни полета (маркирани с <span class="text-danger">*</span>).</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check-circle text-success"></i> Заглавието трябва да е описателно</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Посочете точен адрес</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Изберете правилен приоритет</li>
+                </ul>
             </div>
         </div>
     </div>

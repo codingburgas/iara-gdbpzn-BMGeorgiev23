@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Нов екип{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Нов екип</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име на екипа <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="Напр. Екип 'Орел'">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active">Активен</option>
+                            <option value="on_mission">На мисия</option>
+                            <option value="inactive">Неактивен</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Кратко описание на екипа..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Създай
+                    </button>
+                    <a href="{{ url_for('teams.list_teams') }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">След създаване на екипа, можете да добавяте членове от страницата с детайли.</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check-circle text-success"></i> Името трябва да е уникално</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Активните екипи са налични за задачи</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

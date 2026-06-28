@@ -1,0 +1,45 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fas fa-fire-extinguisher me-2 text-danger"></i>
+            Активни произшествия
+        </h5>
+        <a href="{{ url_for('incidents.list_incidents') }}" class="btn-link">
+            Виж всички <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="text-center py-4">
+            <div class="mb-3">
+                <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+            </div>
+            <h6 class="text-muted">Няма активни произшествия</h6>
+            <p class="small text-muted">Всички екипи са на разположение</p>
+        </div>
+        
+        <!-- Example incident (hidden by default, shown when data exists) -->
+        <!--
+        <div class="incident-item critical">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">Пожар в жилищен блок</div>
+                    <small class="text-muted">
+                        <i class="fas fa-map-marker-alt me-1"></i>
+                        ул. "Цар Борис III" 15, София
+                    </small>
+                </div>
+                <div>
+                    <span class="status-badge active">Активен</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">
+                    <i class="far fa-clock me-1"></i>
+                    Преди 15 минути
+                </small>
+                <span class="badge bg-danger ms-2">Критичен</span>
+            </div>
+        </div>
+        -->
+    </div>
+</div>
