@@ -14,4 +14,4 @@ def create_incident():
 
 @incidents_bp.route('/api/test')
 def api_test():
-    return jsonify({'status': 'OK', 'message': 'API работи!'})
+    return jsonify({'status': 'OK', 'message': 'API работи.'})

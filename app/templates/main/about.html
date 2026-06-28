@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}За нас{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4 animate-fade-in">За нас</h1>
+    
+    <div class="row animate-slide-up">
+        <div class="col-md-8">
+            <p class="lead">Главна дирекция "Пожарна безопасност и защита на населението" (ГДПБЗН) е част от Министерството на вътрешните работи на Република България.</p>
+            <p>Нашата мисия е да защитаваме живота, здравето и имуществото на гражданите чрез:</p>
+            <ul class="list-unstyled">
+                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> Пожарогасителни дейности</li>
+                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> Спасителни операции при бедствия</li>
+                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> Контрол и превантивна дейност</li>
+                <li class="mb-2"><i class="fas fa-check-circle text-danger me-2"></i> Координация на доброволни формирования</li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Контакти</h5>
+                    <p class="card-text">
+                        <i class="fas fa-phone me-2"></i> 112<br>
+                        <i class="fas fa-envelope me-2"></i> gdpbzn@mvr.bg<br>
+                        <i class="fas fa-map-marker-alt me-2"></i> София, България
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5 animate-fade-in delay-1">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center">
+                    <h3>Свържете се с нас</h3>
+                    <p class="mb-3">При спешни случаи винаги можете да позвъните на 112</p>
+                    <a href="{{ url_for('main.contact') }}" class="btn btn-danger">Контакти</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .animate-fade-in { opacity: 0; animation: fadeIn 1s ease forwards; }
+    .animate-slide-up { opacity: 0; animation: slideUp 0.8s ease forwards; }
+    .delay-1 { animation-delay: 0.2s; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}

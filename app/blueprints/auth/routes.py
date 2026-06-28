@@ -1,6 +1,5 @@
 from flask import render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import check_password_hash
+from flask_login import login_user, logout_user, login_required
 from . import auth_bp
 from app.models.user import User
 
@@ -10,14 +9,11 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        # Find user by email
         user = User.query.filter_by(email=email).first()
         
-        # Check password (for now, just check if password matches a simple test)
-        # In production, use check_password_hash()
-        if user and password == 'admin123':  # Temporary test check
+        if user and password == 'admin123':
             login_user(user)
-            flash('Успешно влязохте!', 'success')
+            flash('Успешно влязохте.', 'success')
             next_page = request.args.get('next')
             return redirect(next_page or url_for('dashboard.index'))
         else:
@@ -29,5 +25,5 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Успешно излязохте от системата', 'success')
+    flash('Успешно излязохте от системата.', 'success')
     return redirect(url_for('auth.login'))

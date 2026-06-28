@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Начало{% endblock %}
+
+{% block content %}
+<div class="landing-page">
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-5">
+        <div class="container">
+            <h1 class="display-1 fw-bold text-danger animate-fade-in">ГДПБЗН</h1>
+            <p class="lead mb-4 animate-slide-up">Главна дирекция "Пожарна безопасност и защита на населението"</p>
+            <p class="mb-5 animate-slide-up delay-1">Система за управление на произшествия и пожарни екипи</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-danger btn-lg animate-pop-in">Вход в системата</a>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section py-5 bg-light">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 col-sm-6 mb-4 animate-fade-in">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="display-4 text-danger">0</h2>
+                            <p class="text-muted">Активни произшествия</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4 animate-fade-in delay-1">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="display-4 text-success">0</h2>
+                            <p class="text-muted">Налични екипи</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4 animate-fade-in delay-2">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="display-4 text-warning">0</h2>
+                            <p class="text-muted">Служители на смяна</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4 animate-fade-in delay-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <h2 class="display-4 text-primary">0</h2>
+                            <p class="text-muted">Спасени животи</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 animate-fade-in">Нашите услуги</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4 animate-slide-up">
+                    <div class="card border-0 shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <div class="icon-circle bg-danger text-white mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                <i class="fas fa-fire-extinguisher"></i>
+                            </div>
+                            <h5 class="card-title">Пожарогасене</h5>
+                            <p class="card-text text-muted">Бърза и ефективна реакция при пожари от всякакъв вид.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 animate-slide-up delay-1">
+                    <div class="card border-0 shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <div class="icon-circle bg-success text-white mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <h5 class="card-title">Спасителни дейности</h5>
+                            <p class="card-text text-muted">Оказване на помощ при бедствия и аварийни ситуации.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4 animate-slide-up delay-2">
+                    <div class="card border-0 shadow-sm h-100 text-center">
+                        <div class="card-body">
+                            <div class="icon-circle bg-info text-white mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h5 class="card-title">Превантивна дейност</h5>
+                            <p class="card-text text-muted">Контрол и профилактика за предотвратяване на произшествия.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .animate-fade-in { opacity: 0; animation: fadeIn 1s ease forwards; }
+    .animate-slide-up { opacity: 0; animation: slideUp 0.8s ease forwards; }
+    .animate-pop-in { opacity: 0; animation: popIn 0.6s ease forwards; }
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
+    .delay-3 { animation-delay: 0.6s; }
+    
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+    
+    .icon-circle { transition: transform 0.3s ease; }
+    .icon-circle:hover { transform: scale(1.1); }
+    
+    .card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    
+    .hero-section { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 60vh; display: flex; align-items: center; }
+</style>
+{% endblock %}

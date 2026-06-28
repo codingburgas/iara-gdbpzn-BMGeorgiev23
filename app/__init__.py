@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager, UserMixin
+from flask_login import LoginManager
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import os
@@ -26,18 +26,18 @@ def create_app(config_object='config.Config'):
     login_manager.login_message = 'Моля, влезте в системата'
     login_manager.login_message_category = 'warning'
     
-    # ✅ ADD THIS USER_LOADER FUNCTION
     @login_manager.user_loader
     def load_user(user_id):
-        # Import here to avoid circular imports
         from app.models.user import User
         return User.query.get(int(user_id))
     
     # Register blueprints
+    from app.blueprints.main import main_bp
     from app.blueprints.auth import auth_bp
     from app.blueprints.dashboard import dashboard_bp
     from app.blueprints.incidents import incidents_bp
     
+    app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/')
     app.register_blueprint(incidents_bp, url_prefix='/incidents')
@@ -53,7 +53,7 @@ def create_app(config_object='config.Config'):
     
     @app.route('/test')
     def test():
-        return "ГДПБЗН системата работи! 🚒"
+        return "ГДПБЗН системата работи!"
     
     with app.app_context():
         db.create_all()
