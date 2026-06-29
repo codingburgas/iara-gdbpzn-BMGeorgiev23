@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Инвентар{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Инвентар</h1>
+        <p class="text-muted">Управление на ресурси и оборудване</p>
+    </div>
+    <a href="{{ url_for('resources.create_resource') }}" class="btn btn-danger">
+        <i class="fas fa-plus"></i> Нов ресурс
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-2">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h6 class="card-title">Налични</h6>
+                <h3>{{ resources|selectattr('status', 'equalto', 'available')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-2">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h6 class="card-title">В употреба</h6>
+                <h3>{{ resources|selectattr('status', 'equalto', 'in_use')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-2">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h6 class="card-title">Изчерпани</h6>
+                <h3>{{ resources|selectattr('status', 'equalto', 'depleted')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-2">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h6 class="card-title">Общо</h6>
+                <h3>{{ resources|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Име</th>
+                        <th>Категория</th>
+                        <th>Количество</th>
+                        <th>Статус</th>
+                        <th>Местоположение</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resource in resources %}
+                    <tr>
+                        <td>#{{ resource.id }}</td>
+                        <td>{{ resource.name }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ resource.get_category_display() }}</span>
+                        </td>
+                        <td>
+                            {{ resource.quantity }} {{ resource.unit }}
+                        </td>
+                        <td>
+                            {% if resource.status == 'available' %}
+                                <span class="badge bg-success">Наличен</span>
+                            {% elif resource.status == 'in_use' %}
+                                <span class="badge bg-warning text-dark">В употреба</span>
+                            {% elif resource.status == 'low' %}
+                                <span class="badge bg-warning text-dark">Ограничен</span>
+                            {% else %}
+                                <span class="badge bg-danger">Изчерпан</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ resource.location or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('resources.edit_resource', resource_id=resource.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteResource('{{ resource.id }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity('{{ resource.id }}')">
+                                <i class="fas fa-plus-minus"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-boxes text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2">Няма добавени ресурси.</p>
+                            <a href="{{ url_for('resources.create_resource') }}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-plus"></i> Добавете първия
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/resources.js') }}"></script>
+<script>
+function deleteResource(id) {
+    if (confirm('Сигурни ли сте, че искате да изтриете този ресурс?')) {
+        fetch('/resources/' + id + '/delete', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).then(function(response) {
+            if (response.redirected) {
+                window.location.href = response.url;
+            }
+        });
+    }
+}
+
+function updateQuantity(id) {
+    var newQuantity = prompt('Въведете ново количество:');
+    if (newQuantity !== null) {
+        fetch('/resources/' + id + '/update-quantity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ quantity: parseInt(newQuantity) })
+        }).then(function(response) {
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

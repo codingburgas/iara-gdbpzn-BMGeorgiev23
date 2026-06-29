@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Заявки за ресурси{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Заявки за ресурси</h1>
+        <p class="text-muted">Заявяване на ресурси за активни произшествия</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Request Form -->
+    <div class="col-md-5 mb-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-paper-plane"></i> Нова заявка
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('resources.create_resource') }}">
+                    <div class="mb-3">
+                        <label for="resource_id" class="form-label">Ресурс</label>
+                        <select class="form-select" id="resource_id" name="resource_id" required>
+                            <option value="">Изберете ресурс...</option>
+                            {% for resource in resources %}
+                            <option value="{{ resource.id }}">
+                                {{ resource.name }} ({{ resource.quantity }} {{ resource.unit }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Количество</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="incident_id" class="form-label">Произшествие</label>
+                        <select class="form-select" id="incident_id" name="incident_id">
+                            <option value="">Изберете произшествие...</option>
+                            {% for incident in incidents %}
+                            <option value="{{ incident.id }}">{{ incident.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">
+                        <i class="fas fa-paper-plane"></i> Изпрати заявка
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Requests -->
+    <div class="col-md-7 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history"></i> Последни заявки
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">Вода (2000L)</span>
+                            <br>
+                            <small class="text-muted">Заявено от: Иван Петров</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-warning text-dark">В процес</span>
+                            <small class="text-muted d-block">Преди 15 мин</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">Пожарен автомобил</span>
+                            <br>
+                            <small class="text-muted">Заявено от: Георги Димитров</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-success">Одобрена</span>
+                            <small class="text-muted d-block">Преди 1 час</small>
+                        </div>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">Дизелово гориво (500L)</span>
+                            <br>
+                            <small class="text-muted">Заявено от: Мария Стоянова</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-secondary">Изпълнена</span>
+                            <small class="text-muted d-block">Преди 3 часа</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

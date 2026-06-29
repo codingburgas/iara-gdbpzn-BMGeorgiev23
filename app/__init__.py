@@ -39,7 +39,9 @@ def create_app(config_object='config.Config'):
     from app.blueprints.teams import teams_bp
     from app.blueprints.operations import operations_bp
     from app.blueprints.communications import communications_bp
-    
+    from app.blueprints.resources import resources_bp
+    from app.blueprints.reports import reports_bp
+
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/')
@@ -47,6 +49,8 @@ def create_app(config_object='config.Config'):
     app.register_blueprint(teams_bp, url_prefix='/teams')
     app.register_blueprint(operations_bp, url_prefix='/operations')
     app.register_blueprint(communications_bp, url_prefix='/communications')
+    app.register_blueprint(resources_bp, url_prefix='/resources')
+    app.register_blueprint(reports_bp, url_prefix='/reports')
     
     @app.errorhandler(404)
     def not_found(error):

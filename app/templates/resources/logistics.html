@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Логистика{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="display-6 fw-bold">Логистика</h1>
+        <p class="text-muted">Проследяване на ресурси и доставки</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Logistics Map -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-truck"></i> Транспорт и доставки
+            </div>
+            <div class="card-body">
+                <div id="logistics-map" style="height: 400px; background: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 0.375rem;">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-map" style="font-size: 3rem;"></i>
+                        <p class="mt-2">Карта на доставките</p>
+                        <small>Интерактивна карта с маршрути</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logistics Info -->
+    <div class="col-lg-4 mb-4">
+        <!-- Active Deliveries -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-truck"></i> Активни доставки
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">Вода</span>
+                            <br>
+                            <small class="text-muted">Доставка до пожар на ул. "Цар Борис III"</small>
+                        </div>
+                        <span class="badge bg-warning text-dark">В процес</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">Гориво</span>
+                            <br>
+                            <small class="text-muted">Доставка до екип "Орел"</small>
+                        </div>
+                        <span class="badge bg-success">Пристигнала</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resource Summary -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie"></i> Обобщение на ресурсите
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Превозни средства</span>
+                        <span class="fw-bold">{{ resources|selectattr('category', 'equalto', 'vehicle')|list|length }}</span>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-primary" style="width: 60%;"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Оборудване</span>
+                        <span class="fw-bold">{{ resources|selectattr('category', 'equalto', 'equipment')|list|length }}</span>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-success" style="width: 40%;"></div>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>Вода и гориво</span>
+                        <span class="fw-bold">{{ resources|selectattr('category', 'in', ['water', 'fuel'])|list|length }}</span>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-warning" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/resources.js') }}"></script>
+<script>
+    // Initialize logistics map
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Logistics map loaded');
+    });
+</script>
+{% endblock %}

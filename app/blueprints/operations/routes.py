@@ -12,7 +12,8 @@ from app.models.user import User
 def live():
     incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
     teams = Team.query.filter_by(status='active').all()
-    return render_template('operations/live.html', title='Оперативен център', incidents=incidents, teams=teams)
+    now = datetime.now()
+    return render_template('operations/live.html', title='Оперативен център', incidents=incidents, teams=teams, now=now)
 
 @operations_bp.route('/tasks')
 @login_required
