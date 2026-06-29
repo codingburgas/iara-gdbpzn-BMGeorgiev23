@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Създаване на администратор{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Създаване на администратор</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Имейл</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Парола</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-user-plus"></i> Създай
+                    </button>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

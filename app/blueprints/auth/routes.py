@@ -14,10 +14,22 @@ def login():
         user = User.query.filter_by(email=email).first()
         
         if user and check_password_hash(user.password, password):
+            if user.is_banned:
+                flash(f'Вашият акаунт е блокиран. Причина: {user.ban_reason or "Не е посочена"}', 'danger')
+                return render_template('auth/login.html')
+            
             login_user(user)
             flash('Успешно влязохте.', 'success')
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('dashboard.index'))
+            
+            # Redirect based on role
+            if user.is_admin():
+                return redirect(next_page or url_for('admin.users'))
+            elif user.is_firefighter():
+                return redirect(next_page or url_for('dashboard.index'))
+            else:
+                # Regular users go to their own dashboard
+                return redirect(next_page or url_for('main.user_dashboard'))
         else:
             flash('Невалиден имейл или парола', 'danger')
     
@@ -53,6 +65,7 @@ def register():
             name=name,
             email=email,
             password=hashed_password,
+            role='user',
             is_active=True
         )
         

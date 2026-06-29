@@ -6,9 +6,11 @@ from app import db
 from app.models.incident import Incident
 from app.models.team import Team
 from app.models.user import User
+from app.utils.decorators import role_required, firefighter_required
 
 @incidents_bp.route('/')
 @login_required
+@firefighter_required
 def list_incidents():
     incidents = Incident.query.order_by(Incident.created_at.desc()).all()
     return render_template('incidents/list.html', title='Произшествия', incidents=incidents)
@@ -16,6 +18,7 @@ def list_incidents():
 @incidents_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create_incident():
+    # Allow all logged-in users to create incidents
     teams = Team.query.all()
     
     if request.method == 'POST':
@@ -40,7 +43,7 @@ def create_incident():
             latitude=float(latitude) if latitude else None,
             longitude=float(longitude) if longitude else None,
             priority=priority,
-            assigned_team_id=int(assigned_team_id) if assigned_team_id else None,
+            assigned_team_id=int(assigned_team_id) if assigned_team_id and current_user.is_firefighter() else None,
             created_by_id=current_user.id
         )
         
@@ -48,18 +51,24 @@ def create_incident():
         db.session.commit()
         
         flash('Произшествието е създадено успешно.', 'success')
-        return redirect(url_for('incidents.list_incidents'))
+        
+        if current_user.is_firefighter():
+            return redirect(url_for('incidents.list_incidents'))
+        else:
+            return redirect(url_for('main.my_reports'))
     
     return render_template('incidents/create.html', teams=teams)
 
 @incidents_bp.route('/<int:incident_id>')
 @login_required
+@firefighter_required
 def detail_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     return render_template('incidents/detail.html', title='Детайли', incident=incident)
 
 @incidents_bp.route('/<int:incident_id>/edit', methods=['GET', 'POST'])
 @login_required
+@firefighter_required
 def edit_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     teams = Team.query.all()
@@ -87,6 +96,7 @@ def edit_incident(incident_id):
 
 @incidents_bp.route('/<int:incident_id>/delete', methods=['POST'])
 @login_required
+@role_required(['admin'])
 def delete_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     db.session.delete(incident)
@@ -96,6 +106,7 @@ def delete_incident(incident_id):
 
 @incidents_bp.route('/api/data')
 @login_required
+@firefighter_required
 def api_incidents_data():
     incidents = Incident.query.all()
     data = []
@@ -114,6 +125,7 @@ def api_incidents_data():
 
 @incidents_bp.route('/<int:incident_id>/update-status', methods=['POST'])
 @login_required
+@firefighter_required
 def update_status(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     status = request.json.get('status')

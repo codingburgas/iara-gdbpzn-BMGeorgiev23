@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Редактиране на потребител{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Редактиране на потребител</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Имейл</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Нова парола (оставете празно за да не се променя)</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Въведете нова парола...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Роля</label>
+                        <select class="form-select" id="role" name="role">
+                            <option value="user" {% if user.role == 'user' %}selected{% endif %}>Потребител</option>
+                            <option value="firefighter" {% if user.role == 'firefighter' %}selected{% endif %}>Пожарникар</option>
+                            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Активен</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Запази промените
+                    </button>
+                    <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}Моят профил{% endblock %}
+
+{% block content %}
+<div class="user-dashboard">
+    <!-- Welcome Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="display-6 fw-bold">Здравейте, {{ current_user.name }}!</h1>
+            <p class="text-muted">Добре дошли в системата за докладване на произшествия</p>
+        </div>
+        <div>
+            <span class="badge bg-success p-2">
+                <i class="fas fa-circle me-1" style="font-size: 0.6rem;"></i>
+                Активен профил
+            </span>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card text-center h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-danger bg-opacity-10 text-danger mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="card-title">Докладвай произшествие</h5>
+                    <p class="card-text text-muted small">Сигнализирайте за пожар или друго произшествие</p>
+                    <a href="{{ url_for('main.report') }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-paper-plane"></i> Докладвай
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card text-center h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <h5 class="card-title">Моите доклади</h5>
+                    <p class="card-text text-muted small">Преглед на всички ваши доклади</p>
+                    <a href="{{ url_for('main.my_reports') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-right"></i> Преглед
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card text-center h-100">
+                <div class="card-body">
+                    <div class="stat-icon bg-info bg-opacity-10 text-info mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <h5 class="card-title">Спешни номера</h5>
+                    <p class="card-text text-muted small">Важни телефонни номера за спешни случаи</p>
+                    <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#emergencyModal">
+                        <i class="fas fa-eye"></i> Преглед
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number text-danger">{{ incidents|length }}</div>
+                            <div class="stat-label">Общо доклади</div>
+                        </div>
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number text-warning">
+                                {{ incidents|selectattr('status', 'equalto', 'active')|list|length + incidents|selectattr('status', 'equalto', 'in_progress')|list|length }}
+                            </div>
+                            <div class="stat-label">Активни</div>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="fas fa-spinner"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number text-success">
+                                {{ incidents|selectattr('status', 'equalto', 'resolved')|list|length }}
+                            </div>
+                            <div class="stat-label">Разрешени</div>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number text-info">{{ incidents|length }}</div>
+                            <div class="stat-label">Общо</div>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-clock me-2 text-info"></i>
+                Последни доклади
+            </h5>
+            <a href="{{ url_for('main.my_reports') }}" class="btn-link">
+                Виж всички <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            {% if incidents %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Заглавие</th>
+                            <th>Тип</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for incident in incidents[:5] %}
+                        <tr>
+                            <td>{{ incident.title }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ incident.get_type_display() }}</span>
+                            </td>
+                            <td>
+                                {% if incident.status == 'active' %}
+                                    <span class="badge bg-danger">Активен</span>
+                                {% elif incident.status == 'in_progress' %}
+                                    <span class="badge bg-warning text-dark">В процес</span>
+                                {% elif incident.status == 'resolved' %}
+                                    <span class="badge bg-success">Разрешен</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Затворен</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ incident.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-inbox text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mt-2">Нямате докладвани произшествия.</p>
+                <a href="{{ url_for('main.report') }}" class="btn btn-danger btn-sm">
+                    <i class="fas fa-plus"></i> Докладвайте първото
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Numbers Modal -->
+<div class="modal fade" id="emergencyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-phone"></i> Спешни телефонни номера</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-phone text-danger me-2"></i>
+                            <span class="fw-bold">Единен спешен номер</span>
+                        </div>
+                        <span class="badge bg-danger fs-5">112</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-fire text-danger me-2"></i>
+                            <span class="fw-bold">Пожарна безопасност</span>
+                        </div>
+                        <span class="badge bg-danger fs-5">160</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-ambulance text-danger me-2"></i>
+                            <span class="fw-bold">Спешна медицинска помощ</span>
+                        </div>
+                        <span class="badge bg-danger fs-5">150</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-police text-danger me-2"></i>
+                            <span class="fw-bold">Полиция</span>
+                        </div>
+                        <span class="badge bg-danger fs-5">166</span>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-3 mb-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Важно:</strong> При спешни случаи винаги се обадете на 112!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-dashboard {
+    animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.stat-card .stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.5rem;
+}
+
+.btn-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.btn-link:hover {
+    color: var(--text-primary);
+}
+</style>
+{% endblock %}

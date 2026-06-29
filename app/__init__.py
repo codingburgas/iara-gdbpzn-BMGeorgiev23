@@ -23,7 +23,7 @@ def create_app(config_object='config.Config'):
     cors.init_app(app)
     
     login_manager.login_view = 'auth.login'
-    login_manager.login_message = 'Моля, влезте в системата'
+    login_manager.login_message = 'Моля, влезте в системата.'
     login_manager.login_message_category = 'warning'
     
     @login_manager.user_loader
@@ -41,7 +41,8 @@ def create_app(config_object='config.Config'):
     from app.blueprints.communications import communications_bp
     from app.blueprints.resources import resources_bp
     from app.blueprints.reports import reports_bp
-
+    from app.blueprints.admin import admin_bp
+    
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp, url_prefix='/')
@@ -51,10 +52,15 @@ def create_app(config_object='config.Config'):
     app.register_blueprint(communications_bp, url_prefix='/communications')
     app.register_blueprint(resources_bp, url_prefix='/resources')
     app.register_blueprint(reports_bp, url_prefix='/reports')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
     
     @app.errorhandler(404)
     def not_found(error):
         return {'error': 'Resource not found'}, 404
+    
+    @app.errorhandler(403)
+    def forbidden(error):
+        return {'error': 'Access denied'}, 403
     
     @app.errorhandler(500)
     def internal_error(error):
@@ -67,5 +73,35 @@ def create_app(config_object='config.Config'):
     
     with app.app_context():
         db.create_all()
+        
+        # Seed admin users
+        from app.models.user import User
+        admin_emails = ['admin@example.com']
+        
+        for email in admin_emails:
+            if not User.query.filter_by(email=email).first():
+                admin = User(
+                    email=email,
+                    name='Admin',
+                    role='admin',
+                    is_active=True
+                )
+                admin.set_password('admin123')
+                db.session.add(admin)
+                print(f'Admin user created: {email}')
+        
+        # Seed firefighter user
+        if not User.query.filter_by(email='firefighter@example.com').first():
+            firefighter = User(
+                email='firefighter@example.com',
+                name='Firefighter',
+                role='firefighter',
+                is_active=True
+            )
+            firefighter.set_password('fire123')
+            db.session.add(firefighter)
+            print('Firefighter user created: firefighter@example.com')
+        
+        db.session.commit()
     
     return app

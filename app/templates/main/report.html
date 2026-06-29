@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Докладвай произшествие{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Докладвай произшествие</h1>
+        <p class="text-muted">Докладвайте пожар или друго произшествие</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('incidents.create_incident') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Заглавие <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="type" class="form-label">Тип <span class="text-danger">*</span></label>
+                        <select class="form-select" id="type" name="type" required>
+                            <option value="fire">Пожар</option>
+                            <option value="rescue">Спасителна операция</option>
+                            <option value="other">Друго</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Адрес <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="address" name="address" required placeholder="ул. Примерна 123, София">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="latitude" class="form-label">Географска ширина</label>
+                            <input type="text" class="form-control" id="latitude" name="latitude" placeholder="42.6977">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="longitude" class="form-label">Географска дължина</label>
+                            <input type="text" class="form-control" id="longitude" name="longitude" placeholder="23.3219">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" placeholder="Опишете ситуацията..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-paper-plane"></i> Изпрати сигнал
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-phone"></i> Спешни номера
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="display-4 text-danger">112</h2>
+                    <p class="text-muted">Спешен телефонен номер</p>
+                    <hr>
+                    <p class="small text-muted">При спешни случаи винаги се обадете на 112.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
