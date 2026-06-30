@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Нов ресурс{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Нов ресурс</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория <span class="text-danger">*</span></label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="vehicle">Превозно средство</option>
+                            <option value="equipment">Оборудване</option>
+                            <option value="water">Вода</option>
+                            <option value="fuel">Гориво</option>
+                            <option value="other">Друго</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Количество</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" value="0" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">Мерна единица</label>
+                        <input type="text" class="form-control" id="unit" name="unit" value="бр.">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="available">Наличен</option>
+                            <option value="in_use">В употреба</option>
+                            <option value="low">Ограничен</option>
+                            <option value="depleted">Изчерпан</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Местоположение</label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="Склад София, ул. Примерна 1">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Създай
+                    </button>
+                    <a href="{{ url_for('resources.inventory') }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Попълнете информацията за новия ресурс.</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check-circle text-success"></i> Името трябва да е описателно</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Изберете правилна категория</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Посочете точно количество</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

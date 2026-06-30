@@ -9,6 +9,12 @@
         <p class="text-muted">Произшествие #{{ incident.id }}</p>
     </div>
     <div>
+        <!-- RESOLVE BUTTON - Only show if NOT resolved -->
+        {% if not incident.is_resolved() %}
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#resolveModal">
+                <i class="fas fa-check-circle"></i> Приключи
+            </button>
+        {% endif %}
         <a href="{{ url_for('incidents.edit_incident', incident_id=incident.id) }}" class="btn btn-outline-secondary">
             <i class="fas fa-edit"></i> Редактирай
         </a>
@@ -62,7 +68,44 @@
                     <div class="col-sm-4 fw-bold">Назначен екип</div>
                     <div class="col-sm-8">{{ incident.assigned_team.name if incident.assigned_team else 'Не е назначен' }}</div>
                 </div>
-                <div class="row mb-3">
+                
+                <!-- RESOLUTION DETAILS - Only show if resolved -->
+                {% if incident.is_resolved() %}
+                <hr>
+                <h6 class="fw-bold text-success"><i class="fas fa-check-circle"></i> Детайли по разрешаването</h6>
+                <div class="row mt-3">
+                    <div class="col-sm-4 fw-bold">Спасени животи</div>
+                    <div class="col-sm-8">{{ incident.lives_saved or 0 }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Жертви</div>
+                    <div class="col-sm-8">{{ incident.deaths or 0 }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Резултат</div>
+                    <div class="col-sm-8">
+                        <span class="badge {% if incident.outcome == 'success' %}bg-success{% elif incident.outcome == 'partial' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            {{ incident.get_outcome_display() }}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Разрешено от</div>
+                    <div class="col-sm-8">{{ incident.resolved_by.name if incident.resolved_by else 'Неизвестен' }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Разрешено на</div>
+                    <div class="col-sm-8">{{ incident.resolved_at.strftime('%d.%m.%Y %H:%M') if incident.resolved_at else '-' }}</div>
+                </div>
+                {% if incident.resolution_notes %}
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Бележки</div>
+                    <div class="col-sm-8">{{ incident.resolution_notes }}</div>
+                </div>
+                {% endif %}
+                {% endif %}
+                
+                <div class="row mt-3">
                     <div class="col-sm-4 fw-bold">Създадено от</div>
                     <div class="col-sm-8">{{ incident.created_by.name }}</div>
                 </div>
@@ -70,12 +113,6 @@
                     <div class="col-sm-4 fw-bold">Създадено на</div>
                     <div class="col-sm-8">{{ incident.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
                 </div>
-                {% if incident.resolved_at %}
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Разрешено на</div>
-                    <div class="col-sm-8">{{ incident.resolved_at.strftime('%d.%m.%Y %H:%M') }}</div>
-                </div>
-                {% endif %}
                 <div class="row">
                     <div class="col-sm-4 fw-bold">Описание</div>
                     <div class="col-sm-8">{{ incident.description or 'Няма описание.' }}</div>
@@ -102,4 +139,7 @@
         </div>
     </div>
 </div>
+
+<!-- INCLUDE RESOLVE MODAL -->
+{% include 'incidents/partials/resolve_modal.html' %}
 {% endblock %}

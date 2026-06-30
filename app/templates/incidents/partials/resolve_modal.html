@@ -1,0 +1,86 @@
+<div class="modal fade" id="resolveModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle"></i> Приключване на произшествие
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('incidents.resolve_incident', incident_id=incident.id) }}">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h6 class="fw-bold">Произшествие: {{ incident.title }}</h6>
+                            <p class="text-muted small">ID: #{{ incident.id }} | {{ incident.address }}</p>
+                            <hr>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="lives_saved" class="form-label">
+                                    <i class="fas fa-heart text-success"></i> Спасени животи
+                                </label>
+                                <input type="number" class="form-control" id="lives_saved" name="lives_saved" value="0" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="deaths" class="form-label">
+                                    <i class="fas fa-skull text-danger"></i> Жертви (починали)
+                                </label>
+                                <input type="number" class="form-control" id="deaths" name="deaths" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="outcome" class="form-label">
+                                    <i class="fas fa-trophy"></i> Резултат
+                                </label>
+                                <select class="form-select" id="outcome" name="outcome" required>
+                                    <option value="">Изберете...</option>
+                                    <option value="success">Успешен</option>
+                                    <option value="partial">Частичен успех</option>
+                                    <option value="failure">Неуспешен</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="injured" class="form-label">
+                                    <i class="fas fa-band-aid"></i> Ранени
+                                </label>
+                                <input type="number" class="form-control" id="injured" name="injured" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="resolution_notes" class="form-label">
+                            <i class="fas fa-pen"></i> Бележки по разрешаването
+                        </label>
+                        <textarea class="form-control" id="resolution_notes" name="resolution_notes" rows="3" placeholder="Опишете как е протекло разрешаването..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-2">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Важно:</strong> След приключване на произшествието, то ще бъде маркирано като <strong>Разрешено</strong> и няма да може да бъде редактирано.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Отказ
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Приключи произшествието
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -11,7 +11,8 @@ from app.models.user import User
 @communications_bp.route('/')
 @login_required
 def chat():
-    incidents = Incident.query.all()
+    # Only show active and in_progress incidents (exclude resolved/closed)
+    incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
     templates = Message.query.filter_by(is_template=True).all()
     return render_template('communications/chat.html', title='Чат', incidents=incidents, templates=templates)
 
@@ -47,7 +48,8 @@ def api_messages():
             'id': m.id,
             'content': m.content,
             'sender': m.sender.name,
-            'created_at': m.get_time_display()
+            'created_at': m.get_time_display(),
+            'is_emergency': getattr(m, 'is_emergency', False)
         } for m in messages])
     
     elif request.method == 'POST':
@@ -56,7 +58,8 @@ def api_messages():
             content=data.get('content'),
             incident_id=data.get('incident_id'),
             sender_id=current_user.id,
-            is_template=False
+            is_template=False,
+            is_emergency=data.get('is_emergency', False)
         )
         db.session.add(message)
         db.session.commit()

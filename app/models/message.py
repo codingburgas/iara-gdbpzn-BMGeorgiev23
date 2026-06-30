@@ -8,6 +8,7 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     is_template = db.Column(db.Boolean, default=False)
     template_name = db.Column(db.String(100), nullable=True)
+    is_emergency = db.Column(db.Boolean, default=False)  # NEW FIELD
     
     incident_id = db.Column(db.Integer, db.ForeignKey('incidents.id'), nullable=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)

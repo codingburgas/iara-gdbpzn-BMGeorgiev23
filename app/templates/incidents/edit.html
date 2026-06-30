@@ -66,6 +66,11 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="lives_saved" class="form-label">Спасени животи</label>
+                        <input type="number" class="form-control" id="lives_saved" name="lives_saved" value="{{ incident.lives_saved or 0 }}" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="assigned_team_id" class="form-label">Назначен екип</label>
                         <select class="form-select" id="assigned_team_id" name="assigned_team_id">
                             <option value="">Изберете екип...</option>

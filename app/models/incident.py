@@ -15,6 +15,13 @@ class Incident(db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     
+    # Resolution fields
+    lives_saved = db.Column(db.Integer, default=0)
+    deaths = db.Column(db.Integer, default=0)
+    outcome = db.Column(db.String(50), nullable=True)  # success, partial, failure
+    resolution_notes = db.Column(db.Text, nullable=True)
+    resolved_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     resolved_at = db.Column(db.DateTime, nullable=True)
@@ -25,7 +32,8 @@ class Incident(db.Model):
     
     # Relationships
     assigned_team = db.relationship('Team', backref='incidents')
-    created_by = db.relationship('User', backref='created_incidents')
+    created_by = db.relationship('User', foreign_keys=[created_by_id], backref='created_incidents')
+    resolved_by = db.relationship('User', foreign_keys=[resolved_by_id], backref='resolved_incidents')
     
     def __repr__(self):
         return f'<Incident {self.title}>'
@@ -55,3 +63,14 @@ class Incident(db.Model):
             'other': 'Друго'
         }
         return type_map.get(self.type, self.type)
+    
+    def get_outcome_display(self):
+        outcome_map = {
+            'success': 'Успешен',
+            'partial': 'Частичен успех',
+            'failure': 'Неуспешен'
+        }
+        return outcome_map.get(self.outcome, self.outcome)
+    
+    def is_resolved(self):
+        return self.status in ['resolved', 'closed']

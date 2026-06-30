@@ -14,15 +14,105 @@ function initializeChat() {
     const templateDropdown = document.getElementById('template-dropdown');
     const templateSelect = document.getElementById('template-select');
     
+    // Emergency elements
+    const emergencyBtn = document.getElementById('emergency-btn');
+    const emergencyBtnAlt = document.getElementById('emergency-btn-alt');
+    const emergencyInputContainer = document.getElementById('emergency-input-container');
+    const emergencyInput = document.getElementById('emergency-input');
+    const emergencySendBtn = document.getElementById('emergency-send-btn');
+    const emergencyCancelBtn = document.getElementById('emergency-cancel-btn');
+    
     // Send message
     if (sendBtn && messageInput) {
         sendBtn.addEventListener('click', function() {
-            sendMessage();
+            sendMessage(false);
         });
         
         messageInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                sendMessage();
+                sendMessage(false);
+            }
+        });
+    }
+    
+    // Emergency button - show input field
+    if (emergencyBtn) {
+        emergencyBtn.addEventListener('click', function() {
+            showEmergencyInput();
+        });
+    }
+    if (emergencyBtnAlt) {
+        emergencyBtnAlt.addEventListener('click', function() {
+            showEmergencyInput();
+        });
+    }
+    
+    // Emergency send
+    if (emergencySendBtn && emergencyInput) {
+        emergencySendBtn.addEventListener('click', function() {
+            sendMessage(true);
+        });
+        
+        emergencyInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage(true);
+            }
+        });
+    }
+    
+    // Emergency cancel
+    if (emergencyCancelBtn) {
+        emergencyCancelBtn.addEventListener('click', function() {
+            hideEmergencyInput();
+        });
+    }
+    
+    function showEmergencyInput() {
+        if (emergencyInputContainer) {
+            emergencyInputContainer.style.display = 'block';
+            emergencyInput.focus();
+        }
+    }
+    
+    function hideEmergencyInput() {
+        if (emergencyInputContainer) {
+            emergencyInputContainer.style.display = 'none';
+            emergencyInput.value = '';
+        }
+    }
+    
+    function sendMessage(isEmergency) {
+        const activeChannel = document.querySelector('.list-group-item.active');
+        const incidentId = activeChannel ? activeChannel.dataset.incidentId : 0;
+        
+        let content;
+        if (isEmergency) {
+            content = emergencyInput.value.trim();
+            if (!content) return;
+        } else {
+            content = messageInput.value.trim();
+            if (!content) return;
+        }
+        
+        fetch('/communications/api/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: content,
+                incident_id: incidentId === '0' ? null : incidentId,
+                is_emergency: isEmergency
+            })
+        }).then(function(response) {
+            if (response.ok) {
+                if (isEmergency) {
+                    emergencyInput.value = '';
+                    hideEmergencyInput();
+                } else {
+                    messageInput.value = '';
+                }
+                loadMessages(incidentId);
             }
         });
     }
@@ -56,37 +146,12 @@ function initializeChat() {
             const title = this.textContent.trim();
             document.getElementById('chat-title').innerHTML = '<i class="fas fa-comments"></i> ' + title;
             loadMessages(incidentId);
+            hideEmergencyInput();
         });
     });
     
     // Load initial messages
     loadMessages(0);
-}
-
-function sendMessage() {
-    const messageInput = document.getElementById('message-input');
-    const chatMessages = document.getElementById('chat-messages');
-    const activeChannel = document.querySelector('.list-group-item.active');
-    const incidentId = activeChannel ? activeChannel.dataset.incidentId : 0;
-    
-    const content = messageInput.value.trim();
-    if (!content) return;
-    
-    fetch('/communications/api/messages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            content: content,
-            incident_id: incidentId === '0' ? null : incidentId
-        })
-    }).then(function(response) {
-        if (response.ok) {
-            messageInput.value = '';
-            loadMessages(incidentId);
-        }
-    });
 }
 
 function loadMessages(incidentId) {
@@ -106,13 +171,17 @@ function loadMessages(incidentId) {
             
             var html = '';
             messages.forEach(function(message) {
-                html += '<div class="d-flex mb-3">' +
+                var emergencyClass = message.is_emergency ? 'emergency-message' : '';
+                var emergencyBadge = message.is_emergency ? 
+                    '<span class="badge bg-danger ms-2"><i class="fas fa-exclamation-triangle"></i> СПЕШНО</span>' : '';
+                
+                html += '<div class="d-flex mb-3 ' + emergencyClass + '">' +
                     '<div class="flex-shrink-0">' +
                     '<i class="fas fa-user-circle" style="font-size: 2rem; color: #6c757d;"></i>' +
                     '</div>' +
                     '<div class="flex-grow-1 ms-3">' +
-                    '<div class="d-flex justify-content-between">' +
-                    '<strong>' + message.sender + '</strong>' +
+                    '<div class="d-flex justify-content-between align-items-center">' +
+                    '<strong>' + message.sender + emergencyBadge + '</strong>' +
                     '<small class="text-muted">' + message.created_at + '</small>' +
                     '</div>' +
                     '<p class="mb-0">' + message.content + '</p>' +
@@ -125,29 +194,16 @@ function loadMessages(incidentId) {
 }
 
 function sendEmergencyMessage() {
-    const content = '⚠️ СПЕШНО: Изисква се незабавна помощ!';
-    document.getElementById('message-input').value = content;
-    sendMessage();
-}
-
-function shareLocation() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-            const content = '📍 Текуща локация: ' +
-                position.coords.latitude + ', ' +
-                position.coords.longitude;
-            document.getElementById('message-input').value = content;
-            sendMessage();
-        });
-    } else {
-        alert('Геолокацията не се поддържа от браузъра.');
+    // Trigger emergency input
+    const emergencyBtn = document.getElementById('emergency-btn');
+    if (emergencyBtn) {
+        emergencyBtn.click();
     }
 }
 
 // ============ VIDEO CALL FUNCTIONALITY ============
 
 function initializeVideoCall() {
-    // Video call controls
     const audioBtn = document.getElementById('toggle-audio');
     const videoBtn = document.getElementById('toggle-video');
     const endBtn = document.getElementById('end-call');

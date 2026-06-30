@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Редактиране на ресурс{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Редактиране на ресурс</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ resource.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория <span class="text-danger">*</span></label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="vehicle" {% if resource.category == 'vehicle' %}selected{% endif %}>Превозно средство</option>
+                            <option value="equipment" {% if resource.category == 'equipment' %}selected{% endif %}>Оборудване</option>
+                            <option value="water" {% if resource.category == 'water' %}selected{% endif %}>Вода</option>
+                            <option value="fuel" {% if resource.category == 'fuel' %}selected{% endif %}>Гориво</option>
+                            <option value="other" {% if resource.category == 'other' %}selected{% endif %}>Друго</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Количество</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" value="{{ resource.quantity }}" min="0">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="unit" class="form-label">Мерна единица</label>
+                        <input type="text" class="form-control" id="unit" name="unit" value="{{ resource.unit }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Статус</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="available" {% if resource.status == 'available' %}selected{% endif %}>Наличен</option>
+                            <option value="in_use" {% if resource.status == 'in_use' %}selected{% endif %}>В употреба</option>
+                            <option value="low" {% if resource.status == 'low' %}selected{% endif %}>Ограничен</option>
+                            <option value="depleted" {% if resource.status == 'depleted' %}selected{% endif %}>Изчерпан</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Местоположение</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ resource.location or '' }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ resource.description or '' }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-save"></i> Запази промените
+                    </button>
+                    <a href="{{ url_for('resources.inventory') }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
