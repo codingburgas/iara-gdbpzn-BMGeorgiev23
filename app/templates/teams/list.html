@@ -37,13 +37,9 @@
                             </a>
                         </td>
                         <td>
-                            {% if team.status == 'active' %}
-                                <span class="badge bg-success">Активен</span>
-                            {% elif team.status == 'on_mission' %}
-                                <span class="badge bg-warning text-dark">На мисия</span>
-                            {% else %}
-                                <span class="badge bg-secondary">Неактивен</span>
-                            {% endif %}
+                            <span class="badge {{ team.get_status_badge_class() }}">
+                                {{ team.get_status_display() }}
+                            </span>
                         </td>
                         <td>
                             <span class="badge bg-info text-dark">{{ team.members|length }}</span>

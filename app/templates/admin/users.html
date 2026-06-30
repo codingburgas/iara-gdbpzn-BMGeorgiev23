@@ -8,9 +8,14 @@
         <h1 class="display-6 fw-bold">Управление на потребители</h1>
         <p class="text-muted">Списък на всички регистрирани потребители</p>
     </div>
-    <a href="{{ url_for('admin.create_admin') }}" class="btn btn-danger">
-        <i class="fas fa-user-plus"></i> Нов администратор
-    </a>
+    <div>
+        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary me-2">
+            <i class="fas fa-user-plus"></i> Нов потребител
+        </a>
+        <a href="{{ url_for('admin.create_admin') }}" class="btn btn-danger">
+            <i class="fas fa-user-shield"></i> Нов администратор
+        </a>
+    </div>
 </div>
 
 <div class="card">
@@ -38,8 +43,12 @@
                         <td>
                             {% if user.role == 'admin' %}
                                 <span class="badge bg-danger">Администратор</span>
+                            {% elif user.role == 'incident_manager' %}
+                                <span class="badge bg-primary">Мениджър произшествия</span>
+                            {% elif user.role == 'dispatcher' %}
+                                <span class="badge bg-warning text-dark">Диспечер</span>
                             {% elif user.role == 'firefighter' %}
-                                <span class="badge bg-primary">Пожарникар</span>
+                                <span class="badge bg-success">Пожарникар</span>
                             {% else %}
                                 <span class="badge bg-secondary">Потребител</span>
                             {% endif %}

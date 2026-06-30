@@ -71,8 +71,8 @@
                             </a>
                         </li>
                         
-                        {# Firefighter Navigation #}
-                        {% elif current_user.is_firefighter() %}
+                        {# Incident Manager Navigation #}
+                        {% elif current_user.is_incident_manager() %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('dashboard.index') }}">
                                 <i class="fas fa-chart-pie"></i> Табло
@@ -99,13 +99,59 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('resources.inventory') }}">
-                                <i class="fas fa-boxes"></i> Ресурси
+                            <a class="nav-link" href="{{ url_for('reports.overview') }}">
+                                <i class="fas fa-chart-bar"></i> Доклади
+                            </a>
+                        </li>
+                        
+                        {# Dispatcher Navigation #}
+                        {% elif current_user.is_dispatcher() %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                <i class="fas fa-chart-pie"></i> Табло
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('reports.overview') }}">
-                                <i class="fas fa-chart-bar"></i> Доклади
+                            <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
+                                <i class="fas fa-fire-extinguisher"></i> Произшествия
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
+                                <i class="fas fa-users"></i> Екипи
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('communications.chat') }}">
+                                <i class="fas fa-comments"></i> Комуникации
+                            </a>
+                        </li>
+                        
+                        {# Firefighter Navigation #}
+                        {% elif current_user.is_firefighter() %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                <i class="fas fa-chart-pie"></i> Табло
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
+                                <i class="fas fa-fire-extinguisher"></i> Произшествия
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
+                                <i class="fas fa-users"></i> Екипи
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('communications.chat') }}">
+                                <i class="fas fa-comments"></i> Комуникации
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('resources.inventory') }}">
+                                <i class="fas fa-boxes"></i> Ресурси
                             </a>
                         </li>
                         

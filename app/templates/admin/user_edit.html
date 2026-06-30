@@ -33,9 +33,11 @@
                     <div class="mb-3">
                         <label for="role" class="form-label">Роля</label>
                         <select class="form-select" id="role" name="role">
-                            <option value="user" {% if user.role == 'user' %}selected{% endif %}>Потребител</option>
-                            <option value="firefighter" {% if user.role == 'firefighter' %}selected{% endif %}>Пожарникар</option>
                             <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
+                            <option value="incident_manager" {% if user.role == 'incident_manager' %}selected{% endif %}>Мениджър произшествия</option>
+                            <option value="dispatcher" {% if user.role == 'dispatcher' %}selected{% endif %}>Диспечер</option>
+                            <option value="firefighter" {% if user.role == 'firefighter' %}selected{% endif %}>Пожарникар</option>
+                            <option value="user" {% if user.role == 'user' %}selected{% endif %}>Потребител</option>
                         </select>
                     </div>
                     

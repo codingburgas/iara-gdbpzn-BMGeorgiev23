@@ -74,21 +74,18 @@ def create_app(config_object='config.Config'):
     with app.app_context():
         db.create_all()
         
-        # Seed admin users
+        # Seed admin user
         from app.models.user import User
-        admin_emails = ['admin@example.com']
-        
-        for email in admin_emails:
-            if not User.query.filter_by(email=email).first():
-                admin = User(
-                    email=email,
-                    name='Admin',
-                    role='admin',
-                    is_active=True
-                )
-                admin.set_password('admin123')
-                db.session.add(admin)
-                print(f'Admin user created: {email}')
+        if not User.query.filter_by(email='admin@example.com').first():
+            admin = User(
+                email='admin@example.com',
+                name='Admin',
+                role='admin',
+                is_active=True
+            )
+            admin.set_password('admin123')
+            db.session.add(admin)
+            print('Admin user created: admin@example.com')
         
         # Seed firefighter user
         if not User.query.filter_by(email='firefighter@example.com').first():
@@ -101,6 +98,30 @@ def create_app(config_object='config.Config'):
             firefighter.set_password('fire123')
             db.session.add(firefighter)
             print('Firefighter user created: firefighter@example.com')
+        
+        # Seed dispatcher user
+        if not User.query.filter_by(email='dispatcher@example.com').first():
+            dispatcher = User(
+                email='dispatcher@example.com',
+                name='Dispatcher',
+                role='dispatcher',
+                is_active=True
+            )
+            dispatcher.set_password('disp123')
+            db.session.add(dispatcher)
+            print('Dispatcher user created: dispatcher@example.com')
+        
+        # Seed incident manager user
+        if not User.query.filter_by(email='manager@example.com').first():
+            manager = User(
+                email='manager@example.com',
+                name='Incident Manager',
+                role='incident_manager',
+                is_active=True
+            )
+            manager.set_password('man123')
+            db.session.add(manager)
+            print('Incident Manager user created: manager@example.com')
         
         db.session.commit()
     

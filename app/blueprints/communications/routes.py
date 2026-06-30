@@ -7,9 +7,11 @@ from app.models.message import Message
 from app.models.notification import Notification
 from app.models.incident import Incident
 from app.models.user import User
+from app.utils.decorators import staff_required
 
 @communications_bp.route('/')
 @login_required
+@staff_required
 def chat():
     # Only show active and in_progress incidents (exclude resolved/closed)
     incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
@@ -18,6 +20,7 @@ def chat():
 
 @communications_bp.route('/video')
 @login_required
+@staff_required
 def video_call():
     return render_template('communications/video_call.html', title='Видео обаждане')
 
@@ -30,13 +33,15 @@ def notifications():
 
 @communications_bp.route('/templates')
 @login_required
+@staff_required
 def message_templates():
-    templates = Message.query.filter_by(is_template=True).all()
+    templates = Message.query.query.filter_by(is_template=True).all()
     return render_template('communications/message_templates.html', title='Шаблони за съобщения', templates=templates)
 
-# API Routes
+# API Routes (keep as is, with staff_required where needed)
 @communications_bp.route('/api/messages', methods=['GET', 'POST'])
 @login_required
+@staff_required
 def api_messages():
     if request.method == 'GET':
         incident_id = request.args.get('incident_id')
@@ -84,6 +89,7 @@ def mark_all_read():
 
 @communications_bp.route('/api/templates', methods=['GET', 'POST'])
 @login_required
+@staff_required
 def api_templates():
     if request.method == 'GET':
         templates = Message.query.filter_by(is_template=True).all()
@@ -107,6 +113,7 @@ def api_templates():
 
 @communications_bp.route('/api/notifications/create', methods=['POST'])
 @login_required
+@staff_required
 def create_notification():
     data = request.json
     notification = Notification(

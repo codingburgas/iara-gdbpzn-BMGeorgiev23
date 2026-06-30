@@ -21,17 +21,22 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="status" class="form-label">Статус</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="active" {% if team.status == 'active' %}selected{% endif %}>Активен</option>
-                            <option value="on_mission" {% if team.status == 'on_mission' %}selected{% endif %}>На мисия</option>
-                            <option value="inactive" {% if team.status == 'inactive' %}selected{% endif %}>Неактивен</option>
-                        </select>
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ team.description }}</textarea>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="description" class="form-label">Описание</label>
-                        <textarea class="form-control" id="description" name="description" rows="3">{{ team.description }}</textarea>
+                        <label for="members" class="form-label">Членове на екипа</label>
+                        <select class="form-select" id="members" name="members" multiple size="6">
+                            {% for user in all_firefighters %}
+                                <option value="{{ user.id }}" {% if user.id in current_member_ids %}selected{% endif %}>
+                                    {{ user.name }} ({{ user.get_role_display() }}) {% if user.team_id and user.team_id != team.id %} - В друг екип{% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Задръжте Ctrl (или Cmd) за да изберете няколко потребители.</small>
+                        <br>
+                        <small class="text-muted text-warning">Потребители, които са в друг екип, ще бъдат преместени.</small>
                     </div>
                     
                     <button type="submit" class="btn btn-danger">

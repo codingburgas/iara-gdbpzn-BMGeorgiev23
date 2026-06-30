@@ -6,9 +6,11 @@ from app import db
 from app.models.incident import Incident
 from app.models.team import Team
 from app.models.user import User
+from app.utils.decorators import staff_required, role_required
 
 @operations_bp.route('/')
 @login_required
+@staff_required
 def live():
     incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
     teams = Team.query.filter_by(status='active').all()
@@ -17,12 +19,14 @@ def live():
 
 @operations_bp.route('/tasks')
 @login_required
+@staff_required
 def task_board():
     incidents = Incident.query.order_by(Incident.created_at.desc()).all()
     return render_template('operations/task_board.html', title='Табло за задачи', incidents=incidents)
 
 @operations_bp.route('/map')
 @login_required
+@staff_required
 def map_control():
     incidents = Incident.query.all()
     teams = Team.query.all()
@@ -30,6 +34,7 @@ def map_control():
 
 @operations_bp.route('/api/incidents')
 @login_required
+@staff_required
 def api_incidents():
     incidents = Incident.query.all()
     data = []
@@ -49,6 +54,7 @@ def api_incidents():
 
 @operations_bp.route('/api/teams')
 @login_required
+@staff_required
 def api_teams():
     teams = Team.query.all()
     data = []

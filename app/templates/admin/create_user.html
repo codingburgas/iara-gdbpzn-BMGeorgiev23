@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Създаване на потребител{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-6 fw-bold">Създаване на потребител</h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Име <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Имейл <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Парола <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Роля <span class="text-danger">*</span></label>
+                        <select class="form-select" id="role" name="role" required>
+                            <option value="admin">Администратор</option>
+                            <option value="incident_manager">Мениджър произшествия</option>
+                            <option value="dispatcher">Диспечер</option>
+                            <option value="firefighter">Пожарникар</option>
+                            <option value="user" selected>Потребител</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-user-plus"></i> Създай
+                    </button>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Отказ</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Роли
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li><span class="badge bg-danger">Администратор</span> – Пълен достъп + управление на потребители</li>
+                    <li class="mt-2"><span class="badge bg-primary">Мениджър произшествия</span> – Управление на произшествия</li>
+                    <li class="mt-2"><span class="badge bg-warning text-dark">Диспечер</span> – Създаване и назначаване на екипи</li>
+                    <li class="mt-2"><span class="badge bg-success">Пожарникар</span> – Оперативен персонал</li>
+                    <li class="mt-2"><span class="badge bg-secondary">Потребител</span> – Само докладване</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

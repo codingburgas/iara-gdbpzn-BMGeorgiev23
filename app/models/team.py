@@ -7,21 +7,44 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
-    status = db.Column(db.String(50), default='active')  # active, inactive, on_mission
+    
+    # Status is now auto-calculated - removed status column
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship - back_populates matches the property in User
+    # Relationship
     members = db.relationship('User', back_populates='team', lazy=True)
+    
+    def get_status(self):
+        """Auto-calculate team status based on active incidents."""
+        from app.models.incident import Incident
+        active_incidents = Incident.query.filter(
+            Incident.assigned_team_id == self.id,
+            Incident.status.in_(['active', 'in_progress'])
+        ).count()
+        
+        if active_incidents > 0:
+            return 'on_mission'
+        return 'available'
+    
+    def get_status_display(self):
+        """Get human-readable status."""
+        status = self.get_status()
+        status_map = {
+            'available': 'Наличен',
+            'on_mission': 'На мисия'
+        }
+        return status_map.get(status, status)
+    
+    def get_status_badge_class(self):
+        """Get Bootstrap badge class for status."""
+        status = self.get_status()
+        badge_map = {
+            'available': 'bg-success',
+            'on_mission': 'bg-warning text-dark'
+        }
+        return badge_map.get(status, 'bg-secondary')
     
     def __repr__(self):
         return f'<Team {self.name}>'
-    
-    def get_status_display(self):
-        status_map = {
-            'active': 'Активен',
-            'inactive': 'Неактивен',
-            'on_mission': 'На мисия'
-        }
-        return status_map.get(self.status, self.status)

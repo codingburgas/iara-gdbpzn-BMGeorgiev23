@@ -6,22 +6,19 @@ from app.models.incident import Incident
 from app.models.team import Team
 from app.models.user import User
 from sqlalchemy import func
+from app.utils.decorators import staff_required
 
 @dashboard_bp.route('/dashboard')
 @login_required
+@staff_required
 def index():
     # Stats
     total_incidents = Incident.query.count()
     active_incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).count()
     resolved_incidents = Incident.query.filter_by(status='resolved').count()
     
-    # Resolution stats
+    # Total lives saved (sum of lives_saved from resolved incidents)
     total_lives_saved = db.session.query(func.sum(Incident.lives_saved)).filter_by(status='resolved').scalar() or 0
-    total_deaths = db.session.query(func.sum(Incident.deaths)).filter_by(status='resolved').scalar() or 0
-    
-    # Success rate
-    success_count = Incident.query.filter_by(status='resolved', outcome='success').count()
-    success_rate = round((success_count / resolved_incidents * 100) if resolved_incidents > 0 else 0, 1)
     
     # Active incidents list
     active_incidents_list = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).order_by(Incident.created_at.desc()).limit(5).all()
@@ -39,8 +36,6 @@ def index():
         active_incidents=active_incidents,
         resolved_incidents=resolved_incidents,
         total_lives_saved=total_lives_saved,
-        total_deaths=total_deaths,
-        success_rate=success_rate,
         active_incidents_list=active_incidents_list,
         teams=teams,
         recent_activity=recent_activity

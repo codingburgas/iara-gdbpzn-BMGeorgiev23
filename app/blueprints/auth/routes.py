@@ -25,10 +25,9 @@ def login():
             # Redirect based on role
             if user.is_admin():
                 return redirect(next_page or url_for('admin.users'))
-            elif user.is_firefighter():
+            elif user.is_staff():
                 return redirect(next_page or url_for('dashboard.index'))
             else:
-                # Regular users go to their own dashboard
                 return redirect(next_page or url_for('main.user_dashboard'))
         else:
             flash('Невалиден имейл или парола', 'danger')

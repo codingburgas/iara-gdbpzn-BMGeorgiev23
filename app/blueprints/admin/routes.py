@@ -165,3 +165,33 @@ def create_admin():
         return redirect(url_for('admin.users'))
     
     return render_template('admin/create_admin.html')
+
+@admin_bp.route('/create-user', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_user():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        role = request.form.get('role', 'user')
+        
+        if User.query.filter_by(email=email).first():
+            flash('Този имейл вече е регистриран.', 'danger')
+            return render_template('admin/create_user.html')
+        
+        user = User(
+            email=email,
+            name=name,
+            role=role,
+            is_active=True
+        )
+        user.set_password(password)
+        
+        db.session.add(user)
+        db.session.commit()
+        
+        flash(f'Потребителят е създаден успешно с роля: {user.get_role_display()}.', 'success')
+        return redirect(url_for('admin.users'))
+    
+    return render_template('admin/create_user.html')

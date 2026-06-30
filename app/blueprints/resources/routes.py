@@ -6,9 +6,11 @@ from app import db
 from app.models.resource import Resource
 from app.models.incident import Incident
 from app.models.team import Team
+from app.utils.decorators import staff_required, admin_required, role_required
 
 @resources_bp.route('/')
 @login_required
+@staff_required
 def inventory():
     resources = Resource.query.order_by(Resource.category, Resource.name).all()
     categories = db.session.query(Resource.category).distinct().all()
@@ -16,6 +18,7 @@ def inventory():
 
 @resources_bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@role_required(['admin', 'incident_manager'])
 def create_resource():
     if request.method == 'POST':
         name = request.form.get('name')
@@ -50,6 +53,7 @@ def create_resource():
 
 @resources_bp.route('/<int:resource_id>/edit', methods=['GET', 'POST'])
 @login_required
+@role_required(['admin', 'incident_manager'])
 def edit_resource(resource_id):
     resource = Resource.query.get_or_404(resource_id)
     
@@ -71,6 +75,7 @@ def edit_resource(resource_id):
 
 @resources_bp.route('/<int:resource_id>/delete', methods=['POST'])
 @login_required
+@admin_required
 def delete_resource(resource_id):
     resource = Resource.query.get_or_404(resource_id)
     db.session.delete(resource)
@@ -80,6 +85,7 @@ def delete_resource(resource_id):
 
 @resources_bp.route('/requests')
 @login_required
+@staff_required
 def requests():
     incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
     resources = Resource.query.filter_by(status='available').all()
@@ -87,12 +93,14 @@ def requests():
 
 @resources_bp.route('/logistics')
 @login_required
+@staff_required
 def logistics():
     resources = Resource.query.all()
     return render_template('resources/logistics.html', title='Логистика', resources=resources)
 
 @resources_bp.route('/api/data')
 @login_required
+@staff_required
 def api_resources():
     resources = Resource.query.all()
     data = []
@@ -111,6 +119,7 @@ def api_resources():
 
 @resources_bp.route('/<int:resource_id>/update-quantity', methods=['POST'])
 @login_required
+@staff_required
 def update_quantity(resource_id):
     resource = Resource.query.get_or_404(resource_id)
     data = request.json
@@ -126,6 +135,7 @@ def update_quantity(resource_id):
 
 @resources_bp.route('/<int:resource_id>/assign', methods=['POST'])
 @login_required
+@staff_required
 def assign_resource(resource_id):
     resource = Resource.query.get_or_404(resource_id)
     data = request.json

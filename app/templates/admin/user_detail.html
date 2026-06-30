@@ -38,8 +38,12 @@
                     <div class="col-sm-8">
                         {% if user.role == 'admin' %}
                             <span class="badge bg-danger">Администратор</span>
+                        {% elif user.role == 'incident_manager' %}
+                            <span class="badge bg-primary">Мениджър произшествия</span>
+                        {% elif user.role == 'dispatcher' %}
+                            <span class="badge bg-warning text-dark">Диспечер</span>
                         {% elif user.role == 'firefighter' %}
-                            <span class="badge bg-primary">Пожарникар</span>
+                            <span class="badge bg-success">Пожарникар</span>
                         {% else %}
                             <span class="badge bg-secondary">Потребител</span>
                         {% endif %}

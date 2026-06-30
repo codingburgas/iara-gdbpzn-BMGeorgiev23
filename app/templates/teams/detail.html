@@ -28,13 +28,9 @@
                 <div class="row mb-3">
                     <div class="col-sm-4 fw-bold">Статус</div>
                     <div class="col-sm-8">
-                        {% if team.status == 'active' %}
-                            <span class="badge bg-success">Активен</span>
-                        {% elif team.status == 'on_mission' %}
-                            <span class="badge bg-warning text-dark">На мисия</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Неактивен</span>
-                        {% endif %}
+                        <span class="badge {{ team.get_status_badge_class() }}">
+                            {{ team.get_status_display() }}
+                        </span>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -67,7 +63,7 @@
                         <thead>
                             <tr>
                                 <th>Име</th>
-                                <th>Имейл</th>
+                                <th>Роля</th>
                                 <th>Действия</th>
                             </tr>
                         </thead>
@@ -75,10 +71,10 @@
                             {% for member in members %}
                             <tr>
                                 <td>{{ member.name }}</td>
-                                <td>{{ member.email }}</td>
+                                <td>{{ member.get_role_display() }}</td>
                                 <td>
                                     <form method="POST" action="{{ url_for('teams.remove_member', team_id=team.id, user_id=member.id) }}" class="d-inline">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Сигурни ли сте?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Сигурни ли сте, че искате да премахнете {{ member.name }} от екипа?')">
                                             <i class="fas fa-user-minus"></i>
                                         </button>
                                     </form>
@@ -94,6 +90,69 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Incidents for this team -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-fire"></i> Активни произшествия на екипа
+            </div>
+            <div class="card-body p-0">
+                {% if active_incidents %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Заглавие</th>
+                                <th>Тип</th>
+                                <th>Приоритет</th>
+                                <th>Статус</th>
+                                <th>Адрес</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incident in active_incidents %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('incidents.detail_incident', incident_id=incident.id) }}">
+                                        {{ incident.title }}
+                                    </a>
+                                </td>
+                                <td>{{ incident.get_type_display() }}</td>
+                                <td>
+                                    {% if incident.priority == 'critical' %}
+                                        <span class="badge bg-danger">Критичен</span>
+                                    {% elif incident.priority == 'high' %}
+                                        <span class="badge bg-warning text-dark">Висок</span>
+                                    {% elif incident.priority == 'medium' %}
+                                        <span class="badge bg-info text-dark">Среден</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Нисък</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if incident.status == 'active' %}
+                                        <span class="badge bg-danger">Активен</span>
+                                    {% elif incident.status == 'in_progress' %}
+                                        <span class="badge bg-warning text-dark">В процес</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ incident.address }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3 text-muted">
+                    <i class="fas fa-check-circle text-success"></i> Няма активни произшествия за този екип.
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -115,7 +174,7 @@
                             <option value="">Изберете...</option>
                             {% for user in users %}
                                 {% if not user.team_id or user.team_id == team.id %}
-                                    <option value="{{ user.id }}">{{ user.name }} ({{ user.email }})</option>
+                                    <option value="{{ user.id }}">{{ user.name }} ({{ user.get_role_display() }})</option>
                                 {% endif %}
                             {% endfor %}
                         </select>

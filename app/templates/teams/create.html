@@ -21,17 +21,18 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="status" class="form-label">Статус</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="active">Активен</option>
-                            <option value="on_mission">На мисия</option>
-                            <option value="inactive">Неактивен</option>
-                        </select>
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Кратко описание на екипа..."></textarea>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="description" class="form-label">Описание</label>
-                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Кратко описание на екипа..."></textarea>
+                        <label for="members" class="form-label">Добави членове</label>
+                        <select class="form-select" id="members" name="members" multiple size="5">
+                            {% for user in available_members %}
+                            <option value="{{ user.id }}">{{ user.name }} ({{ user.get_role_display() }})</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Задръжте Ctrl (или Cmd) за да изберете няколко потребители.</small>
                     </div>
                     
                     <button type="submit" class="btn btn-danger">
@@ -49,11 +50,13 @@
                 <i class="fas fa-info-circle"></i> Информация
             </div>
             <div class="card-body">
-                <p class="text-muted small">След създаване на екипа, можете да добавяте членове от страницата с детайли.</p>
+                <p class="text-muted small">Статусът на екипа се определя автоматично:</p>
                 <ul class="list-unstyled small text-muted">
-                    <li><i class="fas fa-check-circle text-success"></i> Името трябва да е уникално</li>
-                    <li><i class="fas fa-check-circle text-success"></i> Активните екипи са налични за задачи</li>
+                    <li><i class="fas fa-check-circle text-success"></i> <strong>Наличен</strong> – Няма активни задачи</li>
+                    <li><i class="fas fa-exclamation-triangle text-warning"></i> <strong>На мисия</strong> – Работи по активни произшествия</li>
                 </ul>
+                <hr>
+                <p class="text-muted small">Можете да добавяте само регистрирани пожарникари.</p>
             </div>
         </div>
     </div>
