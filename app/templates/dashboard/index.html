@@ -171,7 +171,7 @@
                                 <div class="fw-bold">{{ team.name }}</div>
                                 <small class="text-muted">{{ team.members|length }} служителя</small>
                             </div>
-                            <span class="status-badge {% if team.status == 'active' %}active{% elif team.status == 'on_mission' %}away{% else %}inactive{% endif %}">
+                            <span class="status-badge {% if team.get_status() == 'available' %}active{% else %}away{% endif %}">
                                 {{ team.get_status_display() }}
                             </span>
                         </div>

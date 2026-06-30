@@ -7,63 +7,65 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============ CHAT FUNCTIONALITY ============
 
 function initializeChat() {
-    const sendBtn = document.getElementById('send-btn');
-    const messageInput = document.getElementById('message-input');
-    const chatMessages = document.getElementById('chat-messages');
-    const templateBtn = document.getElementById('template-btn');
-    const templateDropdown = document.getElementById('template-dropdown');
-    const templateSelect = document.getElementById('template-select');
+    var sendBtn = document.getElementById('send-btn');
+    var messageInput = document.getElementById('message-input');
+    var chatMessages = document.getElementById('chat-messages');
+    var templateBtn = document.getElementById('template-btn');
+    var templateDropdown = document.getElementById('template-dropdown');
+    var templateSelect = document.getElementById('template-select');
     
     // Emergency elements
-    const emergencyBtn = document.getElementById('emergency-btn');
-    const emergencyBtnAlt = document.getElementById('emergency-btn-alt');
-    const emergencyInputContainer = document.getElementById('emergency-input-container');
-    const emergencyInput = document.getElementById('emergency-input');
-    const emergencySendBtn = document.getElementById('emergency-send-btn');
-    const emergencyCancelBtn = document.getElementById('emergency-cancel-btn');
+    var emergencyBtn = document.getElementById('emergency-btn');
+    var emergencyInputContainer = document.getElementById('emergency-input-container');
+    var emergencyInput = document.getElementById('emergency-input');
+    var emergencySendBtn = document.getElementById('emergency-send-btn');
+    var emergencyCancelBtn = document.getElementById('emergency-cancel-btn');
     
-    // Send message
-    if (sendBtn && messageInput) {
-        sendBtn.addEventListener('click', function() {
-            sendMessage(false);
-        });
+    // Flag to prevent double sending
+    var isSending = false;
+    
+    // Send message function
+    function sendMessage(isEmergency) {
+        // Prevent double sending
+        if (isSending) return;
         
-        messageInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage(false);
-            }
-        });
-    }
-    
-    // Emergency button - show input field
-    if (emergencyBtn) {
-        emergencyBtn.addEventListener('click', function() {
-            showEmergencyInput();
-        });
-    }
-    if (emergencyBtnAlt) {
-        emergencyBtnAlt.addEventListener('click', function() {
-            showEmergencyInput();
-        });
-    }
-    
-    // Emergency send
-    if (emergencySendBtn && emergencyInput) {
-        emergencySendBtn.addEventListener('click', function() {
-            sendMessage(true);
-        });
+        var activeChannel = document.querySelector('.list-group-item.active');
+        var incidentId = activeChannel ? activeChannel.dataset.incidentId : 0;
         
-        emergencyInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage(true);
+        var content;
+        if (isEmergency) {
+            content = emergencyInput.value.trim();
+            if (!content) return;
+        } else {
+            content = messageInput.value.trim();
+            if (!content) return;
+        }
+        
+        isSending = true;
+        
+        fetch('/communications/api/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                content: content,
+                incident_id: incidentId === '0' ? null : incidentId,
+                is_emergency: isEmergency
+            })
+        }).then(function(response) {
+            isSending = false;
+            if (response.ok) {
+                if (isEmergency) {
+                    emergencyInput.value = '';
+                    hideEmergencyInput();
+                } else {
+                    messageInput.value = '';
+                }
+                loadMessages(incidentId);
             }
-        });
-    }
-    
-    // Emergency cancel
-    if (emergencyCancelBtn) {
-        emergencyCancelBtn.addEventListener('click', function() {
-            hideEmergencyInput();
+        }).catch(function() {
+            isSending = false;
         });
     }
     
@@ -81,51 +83,108 @@ function initializeChat() {
         }
     }
     
-    function sendMessage(isEmergency) {
-        const activeChannel = document.querySelector('.list-group-item.active');
-        const incidentId = activeChannel ? activeChannel.dataset.incidentId : 0;
+    // --- Send Button ---
+    if (sendBtn) {
+        // Remove any existing listeners by cloning
+        var newSendBtn = sendBtn.cloneNode(true);
+        sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
+        sendBtn = document.getElementById('send-btn');
         
-        let content;
-        if (isEmergency) {
-            content = emergencyInput.value.trim();
-            if (!content) return;
-        } else {
-            content = messageInput.value.trim();
-            if (!content) return;
-        }
+        sendBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sendMessage(false);
+        });
+    }
+    
+    // --- Message Input (Enter key) ---
+    if (messageInput) {
+        // Remove any existing listeners by cloning
+        var newMessageInput = messageInput.cloneNode(true);
+        messageInput.parentNode.replaceChild(newMessageInput, messageInput);
+        messageInput = document.getElementById('message-input');
         
-        fetch('/communications/api/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                content: content,
-                incident_id: incidentId === '0' ? null : incidentId,
-                is_emergency: isEmergency
-            })
-        }).then(function(response) {
-            if (response.ok) {
-                if (isEmergency) {
-                    emergencyInput.value = '';
-                    hideEmergencyInput();
-                } else {
-                    messageInput.value = '';
-                }
-                loadMessages(incidentId);
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                sendMessage(false);
             }
         });
     }
     
-    // Template dropdown toggle
+    // --- Emergency Button ---
+    if (emergencyBtn) {
+        var newEmergencyBtn = emergencyBtn.cloneNode(true);
+        emergencyBtn.parentNode.replaceChild(newEmergencyBtn, emergencyBtn);
+        emergencyBtn = document.getElementById('emergency-btn');
+        
+        emergencyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showEmergencyInput();
+        });
+    }
+    
+    // --- Emergency Send ---
+    if (emergencySendBtn) {
+        var newEmergencySendBtn = emergencySendBtn.cloneNode(true);
+        emergencySendBtn.parentNode.replaceChild(newEmergencySendBtn, emergencySendBtn);
+        emergencySendBtn = document.getElementById('emergency-send-btn');
+        
+        emergencySendBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sendMessage(true);
+        });
+    }
+    
+    // --- Emergency Input (Enter key) ---
+    if (emergencyInput) {
+        var newEmergencyInput = emergencyInput.cloneNode(true);
+        emergencyInput.parentNode.replaceChild(newEmergencyInput, emergencyInput);
+        emergencyInput = document.getElementById('emergency-input');
+        
+        emergencyInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                sendMessage(true);
+            }
+        });
+    }
+    
+    // --- Emergency Cancel ---
+    if (emergencyCancelBtn) {
+        var newEmergencyCancelBtn = emergencyCancelBtn.cloneNode(true);
+        emergencyCancelBtn.parentNode.replaceChild(newEmergencyCancelBtn, emergencyCancelBtn);
+        emergencyCancelBtn = document.getElementById('emergency-cancel-btn');
+        
+        emergencyCancelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            hideEmergencyInput();
+        });
+    }
+    
+    // --- Template dropdown toggle ---
     if (templateBtn && templateDropdown) {
-        templateBtn.addEventListener('click', function() {
+        var newTemplateBtn = templateBtn.cloneNode(true);
+        templateBtn.parentNode.replaceChild(newTemplateBtn, templateBtn);
+        templateBtn = document.getElementById('template-btn');
+        
+        templateBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             templateDropdown.style.display = templateDropdown.style.display === 'none' ? 'block' : 'none';
         });
     }
     
-    // Template selection
+    // --- Template selection ---
     if (templateSelect && messageInput) {
+        var newTemplateSelect = templateSelect.cloneNode(true);
+        templateSelect.parentNode.replaceChild(newTemplateSelect, templateSelect);
+        templateSelect = document.getElementById('template-select');
+        
         templateSelect.addEventListener('change', function() {
             if (this.value) {
                 messageInput.value = this.value;
@@ -134,16 +193,19 @@ function initializeChat() {
         });
     }
     
-    // Channel selection
+    // --- Channel selection ---
     document.querySelectorAll('.list-group-item[data-incident-id]').forEach(function(item) {
-        item.addEventListener('click', function(e) {
+        var newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', function(e) {
             e.preventDefault();
             document.querySelectorAll('.list-group-item[data-incident-id]').forEach(function(el) {
                 el.classList.remove('active');
             });
             this.classList.add('active');
-            const incidentId = this.dataset.incidentId;
-            const title = this.textContent.trim();
+            var incidentId = this.dataset.incidentId;
+            var title = this.textContent.trim();
             document.getElementById('chat-title').innerHTML = '<i class="fas fa-comments"></i> ' + title;
             loadMessages(incidentId);
             hideEmergencyInput();
@@ -155,7 +217,7 @@ function initializeChat() {
 }
 
 function loadMessages(incidentId) {
-    const chatMessages = document.getElementById('chat-messages');
+    var chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
     
     fetch('/communications/api/messages?incident_id=' + (incidentId === '0' ? '' : incidentId))
@@ -194,8 +256,7 @@ function loadMessages(incidentId) {
 }
 
 function sendEmergencyMessage() {
-    // Trigger emergency input
-    const emergencyBtn = document.getElementById('emergency-btn');
+    var emergencyBtn = document.getElementById('emergency-btn');
     if (emergencyBtn) {
         emergencyBtn.click();
     }
@@ -204,14 +265,18 @@ function sendEmergencyMessage() {
 // ============ VIDEO CALL FUNCTIONALITY ============
 
 function initializeVideoCall() {
-    const audioBtn = document.getElementById('toggle-audio');
-    const videoBtn = document.getElementById('toggle-video');
-    const endBtn = document.getElementById('end-call');
-    const shareBtn = document.getElementById('share-screen');
+    var audioBtn = document.getElementById('toggle-audio');
+    var videoBtn = document.getElementById('toggle-video');
+    var endBtn = document.getElementById('end-call');
+    var shareBtn = document.getElementById('share-screen');
     
     if (audioBtn) {
+        var newAudioBtn = audioBtn.cloneNode(true);
+        audioBtn.parentNode.replaceChild(newAudioBtn, audioBtn);
+        audioBtn = document.getElementById('toggle-audio');
+        
         audioBtn.addEventListener('click', function() {
-            const icon = this.querySelector('i');
+            var icon = this.querySelector('i');
             icon.classList.toggle('fa-microphone');
             icon.classList.toggle('fa-microphone-slash');
             this.classList.toggle('btn-outline-danger');
@@ -220,8 +285,12 @@ function initializeVideoCall() {
     }
     
     if (videoBtn) {
+        var newVideoBtn = videoBtn.cloneNode(true);
+        videoBtn.parentNode.replaceChild(newVideoBtn, videoBtn);
+        videoBtn = document.getElementById('toggle-video');
+        
         videoBtn.addEventListener('click', function() {
-            const icon = this.querySelector('i');
+            var icon = this.querySelector('i');
             icon.classList.toggle('fa-video');
             icon.classList.toggle('fa-video-slash');
             this.classList.toggle('btn-outline-danger');
@@ -230,9 +299,13 @@ function initializeVideoCall() {
     }
     
     if (endBtn) {
+        var newEndBtn = endBtn.cloneNode(true);
+        endBtn.parentNode.replaceChild(newEndBtn, endBtn);
+        endBtn = document.getElementById('end-call');
+        
         endBtn.addEventListener('click', function() {
             if (confirm('Сигурни ли сте, че искате да прекратите обаждането?')) {
-                const container = document.getElementById('video-container');
+                var container = document.getElementById('video-container');
                 if (container) {
                     container.innerHTML = '<div class="text-center text-white">' +
                         '<i class="fas fa-phone-slash" style="font-size: 4rem;"></i>' +
@@ -244,6 +317,10 @@ function initializeVideoCall() {
     }
     
     if (shareBtn) {
+        var newShareBtn = shareBtn.cloneNode(true);
+        shareBtn.parentNode.replaceChild(newShareBtn, shareBtn);
+        shareBtn = document.getElementById('share-screen');
+        
         shareBtn.addEventListener('click', function() {
             if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
                 navigator.mediaDevices.getDisplayMedia({ video: true })

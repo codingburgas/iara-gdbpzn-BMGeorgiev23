@@ -13,7 +13,9 @@ from app.utils.decorators import staff_required, role_required
 @staff_required
 def live():
     incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
-    teams = Team.query.filter_by(status='active').all()
+    # Get all teams, filter in Python using the property
+    all_teams = Team.query.all()
+    teams = [team for team in all_teams if team.get_status() == 'available']
     now = datetime.now()
     return render_template('operations/live.html', title='Оперативен център', incidents=incidents, teams=teams, now=now)
 
@@ -62,7 +64,7 @@ def api_teams():
         data.append({
             'id': team.id,
             'name': team.name,
-            'status': team.status,
+            'status': team.get_status_display(),
             'member_count': len(team.members)
         })
     return jsonify(data)

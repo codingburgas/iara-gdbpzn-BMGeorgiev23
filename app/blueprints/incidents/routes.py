@@ -6,11 +6,11 @@ from app import db
 from app.models.incident import Incident
 from app.models.team import Team
 from app.models.user import User
-from app.utils.decorators import role_required, firefighter_required
+from app.utils.decorators import role_required, staff_required, firefighter_required
 
 @incidents_bp.route('/')
 @login_required
-@firefighter_required
+@staff_required
 def list_incidents():
     incidents = Incident.query.order_by(Incident.created_at.desc()).all()
     return render_template('incidents/list.html', title='Произшествия', incidents=incidents)
@@ -42,7 +42,7 @@ def create_incident():
             latitude=float(latitude) if latitude else None,
             longitude=float(longitude) if longitude else None,
             priority=priority,
-            assigned_team_id=int(assigned_team_id) if assigned_team_id and current_user.is_firefighter() else None,
+            assigned_team_id=int(assigned_team_id) if assigned_team_id and current_user.is_staff() else None,
             created_by_id=current_user.id
         )
         
@@ -51,7 +51,7 @@ def create_incident():
         
         flash('Произшествието е създадено успешно.', 'success')
         
-        if current_user.is_firefighter():
+        if current_user.is_staff():
             return redirect(url_for('incidents.list_incidents'))
         else:
             return redirect(url_for('main.my_reports'))
@@ -60,14 +60,14 @@ def create_incident():
 
 @incidents_bp.route('/<int:incident_id>')
 @login_required
-@firefighter_required
+@staff_required
 def detail_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     return render_template('incidents/detail.html', title='Детайли', incident=incident)
 
 @incidents_bp.route('/<int:incident_id>/edit', methods=['GET', 'POST'])
 @login_required
-@firefighter_required
+@staff_required
 def edit_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     teams = Team.query.all()
@@ -77,8 +77,6 @@ def edit_incident(incident_id):
         incident.description = request.form.get('description')
         incident.type = request.form.get('type')
         incident.address = request.form.get('address')
-        incident.latitude = float(request.form.get('latitude')) if request.form.get('latitude') else None
-        incident.longitude = float(request.form.get('longitude')) if request.form.get('longitude') else None
         incident.priority = request.form.get('priority')
         incident.status = request.form.get('status')
         incident.assigned_team_id = int(request.form.get('assigned_team_id')) if request.form.get('assigned_team_id') else None
@@ -105,7 +103,7 @@ def delete_incident(incident_id):
 
 @incidents_bp.route('/<int:incident_id>/resolve', methods=['GET', 'POST'])
 @login_required
-@firefighter_required
+@staff_required
 def resolve_incident(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     
@@ -137,7 +135,7 @@ def resolve_incident(incident_id):
 
 @incidents_bp.route('/api/data')
 @login_required
-@firefighter_required
+@staff_required
 def api_incidents_data():
     incidents = Incident.query.all()
     data = []
@@ -159,7 +157,7 @@ def api_incidents_data():
 
 @incidents_bp.route('/<int:incident_id>/update-status', methods=['POST'])
 @login_required
-@firefighter_required
+@staff_required
 def update_status(incident_id):
     incident = Incident.query.get_or_404(incident_id)
     status = request.json.get('status')
