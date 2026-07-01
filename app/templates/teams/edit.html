@@ -88,7 +88,6 @@
         var membersInput = document.getElementById('members-input');
         var stationSelect = document.getElementById('station_id');
         
-        // Initialize selected members from existing
         document.querySelectorAll('#selected-members .badge').forEach(function(badge) {
             var id = parseInt(badge.dataset.memberId);
             if (id) {
@@ -160,7 +159,6 @@
         
         stationSelect.addEventListener('change', function() {
             filterMembers();
-            // Remove members that don't match the new station
             var newStation = this.value;
             selectedMembers = selectedMembers.filter(function(id) {
                 var option = memberSelect.querySelector('option[value="' + id + '"]');
@@ -206,7 +204,6 @@
             }
         });
         
-        // Initial filter
         filterMembers();
         renderSelectedMembers();
         updateHiddenInput();

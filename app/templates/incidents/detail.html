@@ -13,12 +13,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
     <div>
         <h1 class="display-6 fw-bold">{{ incident.title }}</h1>
         <p class="text-muted">Произшествие #{{ incident.id }}</p>
     </div>
-    <div>
+    <div class="btn-group-mobile">
         {% if not incident.is_resolved() %}
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#resolveModal">
                 <i class="fas fa-check-circle"></i> Приключи
@@ -28,7 +28,7 @@
             {% if not incident.is_false_alarm and not incident.is_resolved() %}
             <form method="POST" action="{{ url_for('incidents.mark_false_alarm', incident_id=incident.id) }}" class="d-inline" onsubmit="return confirm('Сигурни ли сте, че искате да маркирате това произшествие като ФАЛШИВ СИГНАЛ? Това ще даде предупреждение на потребителя, който го е създал.')">
                 <button type="submit" class="btn btn-outline-danger">
-                    <i class="fas fa-exclamation-triangle"></i> Маркирай като фалшив сигнал
+                    <i class="fas fa-exclamation-triangle"></i> Фалшив сигнал
                 </button>
             </form>
             {% endif %}
@@ -89,7 +89,6 @@
                     <div class="col-sm-8">{{ incident.assigned_team.name if incident.assigned_team else 'Не е назначен' }}</div>
                 </div>
 
-                <!-- Resolution Details -->
                 {% if incident.is_resolved() %}
                 <hr>
                 <h6 class="fw-bold text-success"><i class="fas fa-check-circle"></i> Детайли по разрешаването</h6>
@@ -170,7 +169,6 @@
     </div>
 </div>
 
-<!-- Include Resolve Modal -->
 {% include 'incidents/partials/resolve_modal.html' %}
 {% endblock %}
 

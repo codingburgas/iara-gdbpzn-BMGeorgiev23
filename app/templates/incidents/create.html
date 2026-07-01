@@ -21,7 +21,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- False Alarm Warning Modal (only for normal users) -->
 {% if current_user.is_regular_user() %}
 <div class="modal fade" id="warningModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
@@ -100,7 +99,6 @@
                         <input type="text" class="form-control" id="address" name="address" placeholder="ул. Примерна 123, София" required>
                     </div>
 
-                    <!-- Map Location Picker -->
                     <div class="mb-3">
                         <label class="form-label">Посочете местоположение на картата</label>
                         <div id="location-map"></div>
@@ -112,7 +110,6 @@
                         <input type="hidden" id="longitude" name="longitude" value="">
                     </div>
 
-                    <!-- Team Assignment (only for staff) -->
                     {% if current_user.is_staff() %}
                     <div class="mb-3">
                         <label for="assigned_team_id" class="form-label">Назначен екип</label>
@@ -125,17 +122,19 @@
                     </div>
                     {% endif %}
 
-                    <!-- Description -->
                     <div class="mb-3">
                         <label for="description" class="form-label">Описание <span id="desc-required" class="text-danger" style="display:none;">*</span></label>
                         <textarea class="form-control" id="description" name="description" rows="4"></textarea>
                     </div>
 
-                    <!-- File Attachment -->
                     <div class="mb-3">
                         <label for="attachment" class="form-label">Прикачен файл / Снимка</label>
-                        <input type="file" class="form-control" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx">
-                        <small class="text-muted">Можете да прикачите снимка или документ към произшествието.</small>
+                        <div class="d-flex flex-wrap gap-2">
+                            <input type="file" class="form-control" id="attachment" name="attachment" 
+                                   accept="image/*,.pdf,.doc,.docx" 
+                                   capture="environment">
+                            <small class="text-muted w-100">На мобилно устройство, камерата ще се отвори автоматично за снимка.</small>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-danger">
@@ -169,7 +168,6 @@
     </div>
 </div>
 
-<!-- Store user role flag as a simple data attribute -->
 <span id="user-flags" data-is-regular-user="{% if current_user.is_regular_user() %}true{% else %}false{% endif %}" style="display:none;"></span>
 {% endblock %}
 
@@ -177,7 +175,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Show warning modal for normal users
         var flagsEl = document.getElementById('user-flags');
         var isRegularUser = flagsEl ? flagsEl.getAttribute('data-is-regular-user') === 'true' : false;
 
@@ -193,7 +190,6 @@
             });
         }
 
-        // Initialize map centered on Bulgaria
         var map = L.map('location-map').setView([42.6977, 23.3219], 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -202,7 +198,6 @@
 
         var marker = null;
 
-        // Click on map to set location
         map.on('click', function(e) {
             var lat = e.latlng.lat.toFixed(6);
             var lng = e.latlng.lng.toFixed(6);
@@ -218,7 +213,6 @@
             }
         });
 
-        // Try to get user's location
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
                 var lat = pos.coords.latitude;
@@ -233,7 +227,6 @@
                     marker = L.marker([lat, lng]).addTo(map);
                 }
             }, function() {
-                // User denied or error - use default location
             });
         }
     });
