@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function initializeTheme() {
     // Check for saved theme preference
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var savedTheme = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
-    // Set initial theme
+    // Set initial theme - already set by the script in head, but ensure consistency
     if (savedTheme) {
         document.documentElement.setAttribute('data-theme', savedTheme);
         updateThemeIcon(savedTheme);
@@ -23,16 +23,15 @@ function initializeTheme() {
 }
 
 function createThemeToggle() {
-    const navbar = document.querySelector('.navbar .navbar-nav');
+    var navbar = document.querySelector('.navbar .navbar-nav');
     if (!navbar) return;
     
-    // Check if toggle already exists
     if (document.getElementById('themeToggle')) return;
     
-    const li = document.createElement('li');
+    var li = document.createElement('li');
     li.className = 'nav-item';
     
-    const button = document.createElement('button');
+    var button = document.createElement('button');
     button.id = 'themeToggle';
     button.className = 'nav-link theme-toggle';
     button.setAttribute('aria-label', 'Toggle theme');
@@ -40,7 +39,7 @@ function createThemeToggle() {
     button.style.border = 'none';
     button.style.cursor = 'pointer';
     
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    var currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
     button.innerHTML = currentTheme === 'dark' 
         ? '<i class="fas fa-sun"></i>' 
         : '<i class="fas fa-moon"></i>';
@@ -54,8 +53,8 @@ function createThemeToggle() {
 }
 
 function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    var currentTheme = document.documentElement.getAttribute('data-theme');
+    var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
@@ -63,7 +62,7 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme) {
-    const toggle = document.getElementById('themeToggle');
+    var toggle = document.getElementById('themeToggle');
     if (toggle) {
         toggle.innerHTML = theme === 'dark' 
             ? '<i class="fas fa-sun"></i>' 
@@ -74,7 +73,7 @@ function updateThemeIcon(theme) {
 // Listen for system theme changes
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
     if (!localStorage.getItem('theme')) {
-        const newTheme = e.matches ? 'dark' : 'light';
+        var newTheme = e.matches ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
         updateThemeIcon(newTheme);
     }
