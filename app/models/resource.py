@@ -10,13 +10,19 @@ class Resource(db.Model):
     category = db.Column(db.String(50), nullable=False)  # vehicle, equipment, other
     quantity = db.Column(db.Integer, default=0)
     status = db.Column(db.String(50), default='available')  # available, in_use, low, depleted
-    station_id = db.Column(db.Integer, nullable=True)  # 1, 2, 3 for Sofia, Plovdiv, Varna
+    station_id = db.Column(db.Integer, nullable=True)  # 1, 2, 3
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    def __repr__(self):
-        return f'<Resource {self.name}>'
+    STATIONS = {
+        1: 'Център',
+        2: 'Люлин',
+        3: 'Младост'
+    }
+    
+    def get_station_display(self):
+        return self.STATIONS.get(self.station_id, 'Не е назначена')
     
     def get_category_display(self):
         category_map = {
@@ -43,3 +49,6 @@ class Resource(db.Model):
             'other': 'бр.'
         }
         return unit_map.get(self.category, 'бр.')
+    
+    def __repr__(self):
+        return f'<Resource {self.name}>'

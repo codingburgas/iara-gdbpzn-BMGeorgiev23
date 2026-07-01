@@ -169,8 +169,8 @@
     </div>
 </div>
 
-<!-- Flag consumed by plain JS below, avoids mixing {% if %} into the script block -->
-<span id="user-flags" data-is-regular-user="{{ current_user.is_regular_user()|tojson }}" style="display:none;"></span>
+<!-- Store user role flag as a simple data attribute -->
+<span id="user-flags" data-is-regular-user="{% if current_user.is_regular_user() %}true{% else %}false{% endif %}" style="display:none;"></span>
 {% endblock %}
 
 {% block extra_js %}
@@ -178,7 +178,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Show warning modal for normal users
-        var isRegularUser = document.getElementById('user-flags').dataset.isRegularUser === 'true';
+        var flagsEl = document.getElementById('user-flags');
+        var isRegularUser = flagsEl ? flagsEl.getAttribute('data-is-regular-user') === 'true' : false;
 
         if (isRegularUser) {
             var warningModal = new bootstrap.Modal(document.getElementById('warningModal'), {

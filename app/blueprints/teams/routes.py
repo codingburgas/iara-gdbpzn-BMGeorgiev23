@@ -12,14 +12,15 @@ from app.utils.decorators import staff_required, admin_required
 @login_required
 @staff_required
 def list_teams():
-    teams = Team.query.order_by(Team.name).all()
+    teams = Team.query.order_by(Team.station_id, Team.name).all()
     return render_template('teams/list.html', title='Екипи', teams=teams)
 
 @teams_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 @staff_required
 def create_team():
-    # Get all firefighters (users with role 'firefighter')
+    # Get all firefighters (users with role 'firefighter') who don't have a team
+    # We'll filter by station in the template
     available_members = User.query.filter(
         User.role == 'firefighter',
         User.team_id.is_(None),
@@ -29,10 +30,15 @@ def create_team():
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
+        station_id = request.form.get('station_id')
         member_ids = request.form.getlist('members')
         
         if not name:
             flash('Името на екипа е задължително.', 'danger')
+            return render_template('teams/create.html', available_members=available_members)
+        
+        if not station_id:
+            flash('Моля, изберете станция за екипа.', 'danger')
             return render_template('teams/create.html', available_members=available_members)
         
         existing = Team.query.filter_by(name=name).first()
@@ -42,7 +48,8 @@ def create_team():
         
         team = Team(
             name=name,
-            description=description
+            description=description,
+            station_id=int(station_id)
         )
         
         db.session.add(team)
@@ -51,7 +58,11 @@ def create_team():
         if member_ids:
             members = User.query.filter(User.id.in_(member_ids)).all()
             for member in members:
-                member.team_id = team.id
+                # Verify member belongs to the same station
+                if member.station_id == team.station_id:
+                    member.team_id = team.id
+                else:
+                    flash(f'{member.name} не е от същата станция като екипа.', 'warning')
         
         db.session.commit()
         
@@ -93,17 +104,23 @@ def edit_team(team_id):
     if request.method == 'POST':
         team.name = request.form.get('name')
         team.description = request.form.get('description')
+        team.station_id = int(request.form.get('station_id'))
         team.updated_at = datetime.utcnow()
         
         member_ids = request.form.getlist('members')
         
+        # Remove all current members
         for member in current_members:
             member.team_id = None
         
+        # Add new members (only if they match the station)
         if member_ids:
             new_members = User.query.filter(User.id.in_(member_ids)).all()
             for member in new_members:
-                member.team_id = team.id
+                if member.station_id == team.station_id:
+                    member.team_id = team.id
+                else:
+                    flash(f'{member.name} не е от същата станция като екипа и не беше добавен.', 'warning')
         
         db.session.commit()
         flash('Екипът е обновен успешно.', 'success')
@@ -150,6 +167,10 @@ def add_member(team_id):
         flash('Можете да добавяте само пожарникари.', 'danger')
         return redirect(url_for('teams.detail_team', team_id=team.id))
     
+    if user.station_id != team.station_id:
+        flash(f'{user.name} не е от същата станция като екипа.', 'danger')
+        return redirect(url_for('teams.detail_team', team_id=team.id))
+    
     if user.team_id:
         flash(f'{user.name} вече е в друг екип.', 'danger')
         return redirect(url_for('teams.detail_team', team_id=team.id))
@@ -188,6 +209,7 @@ def api_teams_data():
         data.append({
             'id': team.id,
             'name': team.name,
+            'station': team.get_station_display(),
             'status': team.get_status_display(),
             'members': member_count,
             'created_at': team.created_at.strftime('%Y-%m-%d %H:%M')

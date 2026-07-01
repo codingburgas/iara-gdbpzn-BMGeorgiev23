@@ -18,261 +18,267 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                ГДПБЗН
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    {% if current_user.is_authenticated %}
-                        {# Admin Navigation #}
-                        {% if current_user.is_admin() %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin.users') }}">
-                                <i class="fas fa-users-cog"></i> Потребители
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
-                                <i class="fas fa-chart-pie"></i> Табло
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
-                                <i class="fas fa-fire-extinguisher"></i> Произшествия
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
-                                <i class="fas fa-users"></i> Екипи
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('operations.live') }}">
-                                <i class="fas fa-tv"></i> Операции
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('communications.chat') }}">
-                                <i class="fas fa-comments"></i> Комуникации
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('resources.inventory') }}">
-                                <i class="fas fa-boxes"></i> Ресурси
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('reports.overview') }}">
-                                <i class="fas fa-chart-bar"></i> Доклади
-                            </a>
-                        </li>
-                        
-                        {# Incident Manager Navigation #}
-                        {% elif current_user.is_incident_manager() %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
-                                <i class="fas fa-chart-pie"></i> Табло
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
-                                <i class="fas fa-fire-extinguisher"></i> Произшествия
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
-                                <i class="fas fa-users"></i> Екипи
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('operations.live') }}">
-                                <i class="fas fa-tv"></i> Операции
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('communications.chat') }}">
-                                <i class="fas fa-comments"></i> Комуникации
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('reports.overview') }}">
-                                <i class="fas fa-chart-bar"></i> Доклади
-                            </a>
-                        </li>
-                        
-                        {# Dispatcher Navigation #}
-                        {% elif current_user.is_dispatcher() %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
-                                <i class="fas fa-chart-pie"></i> Табло
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
-                                <i class="fas fa-fire-extinguisher"></i> Произшествия
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
-                                <i class="fas fa-users"></i> Екипи
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('communications.chat') }}">
-                                <i class="fas fa-comments"></i> Комуникации
-                            </a>
-                        </li>
-                        
-                        {# Firefighter Navigation #}
-                        {% elif current_user.is_firefighter() %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
-                                <i class="fas fa-chart-pie"></i> Табло
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
-                                <i class="fas fa-fire-extinguisher"></i> Произшествия
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
-                                <i class="fas fa-users"></i> Екипи
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('communications.chat') }}">
-                                <i class="fas fa-comments"></i> Комуникации
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('resources.inventory') }}">
-                                <i class="fas fa-boxes"></i> Ресурси
-                            </a>
-                        </li>
-                        
-                        {# Regular User Navigation #}
+    <div class="d-flex flex-column min-vh-100">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-danger">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                    ГДПБЗН
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        {% if current_user.is_authenticated %}
+                            {# Admin Navigation #}
+                            {% if current_user.is_admin() %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('admin.users') }}">
+                                    <i class="fas fa-users-cog"></i> Потребители
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                    <i class="fas fa-chart-pie"></i> Табло
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
+                                    <i class="fas fa-fire-extinguisher"></i> Произшествия
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
+                                    <i class="fas fa-users"></i> Екипи
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('operations.live') }}">
+                                    <i class="fas fa-tv"></i> Операции
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('communications.chat') }}">
+                                    <i class="fas fa-comments"></i> Комуникации
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('resources.inventory') }}">
+                                    <i class="fas fa-boxes"></i> Ресурси
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('reports.overview') }}">
+                                    <i class="fas fa-chart-bar"></i> Доклади
+                                </a>
+                            </li>
+                            
+                            {# Incident Manager Navigation #}
+                            {% elif current_user.is_incident_manager() %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                    <i class="fas fa-chart-pie"></i> Табло
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
+                                    <i class="fas fa-fire-extinguisher"></i> Произшествия
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
+                                    <i class="fas fa-users"></i> Екипи
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('operations.live') }}">
+                                    <i class="fas fa-tv"></i> Операции
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('communications.chat') }}">
+                                    <i class="fas fa-comments"></i> Комуникации
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('reports.overview') }}">
+                                    <i class="fas fa-chart-bar"></i> Доклади
+                                </a>
+                            </li>
+                            
+                            {# Dispatcher Navigation #}
+                            {% elif current_user.is_dispatcher() %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                    <i class="fas fa-chart-pie"></i> Табло
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
+                                    <i class="fas fa-fire-extinguisher"></i> Произшествия
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
+                                    <i class="fas fa-users"></i> Екипи
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('communications.chat') }}">
+                                    <i class="fas fa-comments"></i> Комуникации
+                                </a>
+                            </li>
+                            
+                            {# Firefighter Navigation #}
+                            {% elif current_user.is_firefighter() %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('dashboard.index') }}">
+                                    <i class="fas fa-chart-pie"></i> Табло
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('incidents.list_incidents') }}">
+                                    <i class="fas fa-fire-extinguisher"></i> Произшествия
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('teams.list_teams') }}">
+                                    <i class="fas fa-users"></i> Екипи
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('communications.chat') }}">
+                                    <i class="fas fa-comments"></i> Комуникации
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('resources.inventory') }}">
+                                    <i class="fas fa-boxes"></i> Ресурси
+                                </a>
+                            </li>
+                            
+                            {# Regular User Navigation #}
+                            {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.index') }}">
+                                    <i class="fas fa-home"></i> Начало
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.about') }}">
+                                    <i class="fas fa-info-circle"></i> За нас
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.contact') }}">
+                                    <i class="fas fa-envelope"></i> Контакти
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.report') }}">
+                                    <i class="fas fa-exclamation-triangle"></i> Докладвай
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.my_reports') }}">
+                                    <i class="fas fa-list"></i> Моите доклади
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {# Common User Items #}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('profile.index') }}">
+                                    <i class="fas fa-user"></i> {{ current_user.name }}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt"></i> Изход
+                                </a>
+                            </li>
                         {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">
-                                <i class="fas fa-home"></i> Начало
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.about') }}">
-                                <i class="fas fa-info-circle"></i> За нас
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.contact') }}">
-                                <i class="fas fa-envelope"></i> Контакти
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.report') }}">
-                                <i class="fas fa-exclamation-triangle"></i> Докладвай
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.my_reports') }}">
-                                <i class="fas fa-list"></i> Моите доклади
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.index') }}">Начало</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.about') }}">За нас</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('main.contact') }}">Контакти</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('auth.login') }}">
+                                    <i class="fas fa-sign-in-alt"></i> Вход
+                                </a>
+                            </li>
                         {% endif %}
-                        
-                        {# Common User Items #}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('profile.index') }}">
-                                <i class="fas fa-user"></i> {{ current_user.name }}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.logout') }}">
-                                <i class="fas fa-sign-out-alt"></i> Изход
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.index') }}">Начало</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.about') }}">За нас</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.contact') }}">Контакти</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('auth.login') }}">
-                                <i class="fas fa-sign-in-alt"></i> Вход
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="container mt-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Flash Messages -->
+        <div class="container mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Main Content - This will expand to fill available space -->
+        <main class="container mt-4 flex-grow-1">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer - Hide on login and register pages -->
+        {% if request.endpoint not in ['auth.login', 'auth.register'] %}
+            <footer class="site-footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="footer-brand">
+                                <span>ГДПБЗН</span> - Система за управление
+                            </div>
+                            <p class="text-muted small mt-2">
+                                Главна дирекция "Пожарна безопасност и защита на населението"
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="fw-bold">Контакти</h6>
+                            <p class="text-muted small mb-1">
+                                <i class="fas fa-phone me-2"></i> 112 (спешни случаи)
+                            </p>
+                            <p class="text-muted small mb-1">
+                                <i class="fas fa-envelope me-2"></i> gdpbzn@mvr.bg
+                            </p>
+                            <p class="text-muted small">
+                                <i class="fas fa-map-marker-alt me-2"></i> София, България
+                            </p>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <h6 class="fw-bold">Връзки</h6>
+                            <div class="footer-links d-flex flex-column">
+                                <a href="{{ url_for('main.about') }}">За нас</a>
+                                <a href="{{ url_for('main.contact') }}">Контакти</a>
+                                <a href="{{ url_for('main.terms') }}">Условия за ползване</a>
+                            </div>
+                        </div>
                     </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+                    <hr class="footer-divider">
+                    <div class="footer-bottom text-center">
+                        &copy; 2026 ГДПБЗН. Всички права запазени.
+                    </div>
+                </div>
+            </footer>
+        {% endif %}
     </div>
-
-    <main class="container mt-4">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="footer-brand">
-                        <span>ГДПБЗН</span> - Система за управление
-                    </div>
-                    <p class="text-muted small mt-2">
-                        Главна дирекция "Пожарна безопасност и защита на населението"
-                    </p>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold">Контакти</h6>
-                    <p class="text-muted small mb-1">
-                        <i class="fas fa-phone me-2"></i> 112 (спешни случаи)
-                    </p>
-                    <p class="text-muted small mb-1">
-                        <i class="fas fa-envelope me-2"></i> gdpbzn@mvr.bg
-                    </p>
-                    <p class="text-muted small">
-                        <i class="fas fa-map-marker-alt me-2"></i> София, България
-                    </p>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold">Връзки</h6>
-                    <div class="footer-links d-flex flex-column">
-                        <a href="{{ url_for('main.about') }}">За нас</a>
-                        <a href="{{ url_for('main.contact') }}">Контакти</a>
-                        <a href="{{ url_for('main.terms') }}">Условия за ползване</a>
-                    </div>
-                </div>
-            </div>
-            <hr class="footer-divider">
-            <div class="footer-bottom text-center">
-                &copy; 2026 ГДПБЗН. Всички права запазени.
-            </div>
-        </div>
-    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>

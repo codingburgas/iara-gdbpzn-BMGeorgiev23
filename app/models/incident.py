@@ -15,6 +15,9 @@ class Incident(db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     
+    # Nearest station (calculated when incident is created)
+    nearest_station_id = db.Column(db.Integer, nullable=True)  # 1, 2, 3
+    
     # Resolution fields
     lives_saved = db.Column(db.Integer, default=0)
     deaths = db.Column(db.Integer, default=0)
@@ -47,8 +50,14 @@ class Incident(db.Model):
     
     messages = db.relationship('Message', back_populates='incident', lazy=True, cascade='all, delete-orphan')
     
-    def __repr__(self):
-        return f'<Incident {self.title}>'
+    STATIONS = {
+        1: 'Център',
+        2: 'Люлин',
+        3: 'Младост'
+    }
+    
+    def get_nearest_station_display(self):
+        return self.STATIONS.get(self.nearest_station_id, 'Не е определена')
     
     def get_status_display(self):
         status_map = {

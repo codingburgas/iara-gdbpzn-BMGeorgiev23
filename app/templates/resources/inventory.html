@@ -98,24 +98,24 @@
 [
     {
         "id": 1,
-        "name": "София",
+        "name": "Център",
         "lat": 42.6977,
         "lng": 23.3219,
         "address": "ул. Цар Борис III 15, София"
     },
     {
         "id": 2,
-        "name": "Пловдив",
-        "lat": 42.1354,
-        "lng": 24.7453,
-        "address": "бул. Руски 25, Пловдив"
+        "name": "Люлин",
+        "lat": 42.7200,
+        "lng": 23.2800,
+        "address": "бул. Люлин 10, София"
     },
     {
         "id": 3,
-        "name": "Варна",
-        "lat": 43.2141,
-        "lng": 27.9147,
-        "address": "ул. Приморска 10, Варна"
+        "name": "Младост",
+        "lat": 42.6500,
+        "lng": 23.3800,
+        "address": "бул. Младост 5, София"
     }
 ]
 </script>
@@ -130,7 +130,6 @@
     "description": {{ resource.description|tojson }},
     "category": {{ resource.category|tojson }},
     "category_display": {{ resource.get_category_display()|tojson }},
-    "quantity": {{ resource.quantity }},
     "status": {{ resource.status|tojson }},
     "status_display": {{ resource.get_status_display()|tojson }},
     "station_id": {{ resource.station_id|tojson }},
@@ -145,7 +144,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var map = L.map('stations-map').setView([42.6977, 23.3219], 7);
+        var map = L.map('stations-map').setView([42.6977, 23.3219], 12);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap'
@@ -154,8 +153,6 @@
         var stations = JSON.parse(document.getElementById('stations-data').textContent);
         var resources = JSON.parse(document.getElementById('resources-data').textContent);
         
-        var stationMarkers = {};
-        
         stations.forEach(function(station) {
             var marker = L.marker([station.lat, station.lng]).addTo(map);
             marker.bindPopup('<b>' + station.name + '</b><br>' + station.address);
@@ -163,8 +160,6 @@
             marker.on('click', function() {
                 showStationInfo(station.id);
             });
-            
-            stationMarkers[station.id] = marker;
         });
         
         function showStationInfo(stationId) {
@@ -184,7 +179,7 @@
             } else {
                 html += '<div class="table-responsive">';
                 html += '<table class="table table-sm table-hover">';
-                html += '<thead><tr><th>Име</th><th>К-во</th><th>Статус</th><th>Действие</th></tr></thead>';
+                html += '<thead><tr><th>Име</th><th>Статус</th><th>Действие</th></tr></thead>';
                 html += '<tbody>';
                 
                 stationResources.forEach(function(resource) {
@@ -194,15 +189,24 @@
                     
                     html += '<tr>';
                     html += '<td>' + resource.name + '</td>';
-                    html += '<td>' + resource.quantity + ' ' + resource.unit + '</td>';
                     html += '<td><span class="resource-status-badge ' + statusClass + '">' + resource.status_display + '</span></td>';
                     html += '<td>';
-                    html += '<select class="form-select form-select-sm status-update" data-resource-id="' + resource.id + '">';
-                    html += '<option value="available" ' + (resource.status === 'available' ? 'selected' : '') + '>Наличен</option>';
-                    html += '<option value="in_use" ' + (resource.status === 'in_use' ? 'selected' : '') + '>В употреба</option>';
-                    html += '<option value="low" ' + (resource.status === 'low' ? 'selected' : '') + '>Ограничен</option>';
-                    html += '<option value="depleted" ' + (resource.status === 'depleted' ? 'selected' : '') + '>Изчерпан</option>';
+                    
+                    // Move to different station dropdown
+                    html += '<div class="d-flex gap-1">';
+                    html += '<select class="form-select form-select-sm move-resource" data-resource-id="' + resource.id + '">';
+                    html += '<option value="">Премести в...</option>';
+                    stations.forEach(function(s) {
+                        if (s.id !== stationId) {
+                            html += '<option value="' + s.id + '">' + s.name + '</option>';
+                        }
+                    });
                     html += '</select>';
+                    html += '<button class="btn btn-sm btn-outline-danger remove-resource" data-resource-id="' + resource.id + '" data-resource-name="' + resource.name + '">';
+                    html += '<i class="fas fa-trash"></i>';
+                    html += '</button>';
+                    html += '</div>';
+                    
                     html += '</td>';
                     html += '</tr>';
                 });
@@ -213,24 +217,56 @@
             
             body.innerHTML = html;
             
-            // Add event listeners for status updates
-            document.querySelectorAll('.status-update').forEach(function(select) {
+            // Handle resource move
+            document.querySelectorAll('.move-resource').forEach(function(select) {
                 select.addEventListener('change', function() {
                     var resourceId = this.dataset.resourceId;
-                    var status = this.value;
+                    var newStationId = this.value;
                     
-                    fetch('/resources/' + resourceId + '/update-status', {
+                    if (!newStationId) return;
+                    
+                    if (!confirm('Сигурни ли сте, че искате да преместите този ресурс в друга станция?')) {
+                        this.value = '';
+                        return;
+                    }
+                    
+                    fetch('/resources/' + resourceId + '/move', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify({ status: status })
+                        body: JSON.stringify({ station_id: parseInt(newStationId) })
                     }).then(function(response) {
                         if (response.ok) {
                             location.reload();
                         } else {
-                            alert('Възникна грешка при обновяването на статуса.');
+                            alert('Възникна грешка при преместването на ресурса.');
+                        }
+                    });
+                });
+            });
+            
+            // Handle resource removal
+            document.querySelectorAll('.remove-resource').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var resourceId = this.dataset.resourceId;
+                    var resourceName = this.dataset.resourceName;
+                    
+                    if (!confirm('Сигурни ли сте, че искате да премахнете ресурс "' + resourceName + '"?')) {
+                        return;
+                    }
+                    
+                    fetch('/resources/' + resourceId + '/delete', {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }).then(function(response) {
+                        if (response.ok) {
+                            location.reload();
+                        } else {
+                            alert('Възникна грешка при премахването на ресурса.');
                         }
                     });
                 });

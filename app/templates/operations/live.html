@@ -64,6 +64,27 @@
     .popup-attachment a:hover {
         text-decoration: underline;
     }
+    
+    .station-resources {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #dee2e6;
+        font-size: 0.8rem;
+    }
+    
+    .station-resources .resource-item {
+        display: inline-block;
+        background: #f8f9fa;
+        padding: 0.1rem 0.5rem;
+        border-radius: 10px;
+        margin: 0.1rem 0.2rem;
+    }
+    
+    /* Highlight recommended teams with bright yellow background */
+    .team-option-recommended {
+        background-color: #ffeb3b !important;
+        font-weight: bold;
+    }
 </style>
 {% endblock %}
 
@@ -116,14 +137,33 @@
                         <small class="text-muted d-block mt-1">
                             <i class="fas fa-map-marker-alt"></i> {{ incident.address }}
                         </small>
+                        {% if incident.nearest_station_id %}
+                        <small class="text-muted d-block">
+                            <i class="fas fa-building"></i> Най-близка станция: {{ incident.get_nearest_station_display() }}
+                        </small>
+                        {% endif %}
                         {% if current_user.is_admin() or current_user.is_incident_manager() or current_user.is_dispatcher() %}
                         <div class="mt-2">
                             <select class="form-select form-select-sm assign-team-select" data-incident-id="{{ incident.id }}">
                                 <option value="">Назначи екип...</option>
-                                {% for team in available_teams %}
-                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% for team in incident.sorted_teams %}
+                                    <option value="{{ team.id }}" {% if team.is_recommended %}class="team-option-recommended"{% endif %}>
+                                        {{ team.name }} ({{ team.station_display }}){% if team.is_recommended %} - Препоръчан{% endif %}
+                                    </option>
                                 {% endfor %}
                             </select>
+                            {% if incident.sorted_teams %}
+                            <div class="station-resources">
+                                <small class="text-muted">Ресурси от станцията:</small>
+                                <div>
+                                    {% for resource in incident.station_resources %}
+                                    <span class="resource-item">{{ resource.name }} ({{ resource.quantity }})</span>
+                                    {% else %}
+                                    <span class="text-muted small">Няма налични ресурси</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </div>
@@ -159,6 +199,11 @@
                         <small class="text-muted d-block">
                             <i class="fas fa-map-marker-alt"></i> {{ incident.address }}
                         </small>
+                        {% if incident.nearest_station_id %}
+                        <small class="text-muted d-block">
+                            <i class="fas fa-building"></i> Станция: {{ incident.get_nearest_station_display() }}
+                        </small>
+                        {% endif %}
                     </div>
                     {% else %}
                     <div class="list-group-item text-center text-muted py-3">
@@ -181,6 +226,7 @@
                         <div>
                             <i class="fas fa-user-circle me-1"></i>
                             {{ team.name }}
+                            <small class="text-muted">({{ team.get_station_display() }})</small>
                         </div>
                         <span class="badge {% if team.get_status() == 'available' %}bg-success{% else %}bg-warning text-dark{% endif %}">
                             {{ team.get_status_display() }}
@@ -233,7 +279,7 @@
     </div>
 </div>
 
-<!-- Permission flag for map popups, kept out of the JS block -->
+<!-- Permission flag for map popups -->
 <span id="user-flags"
       data-can-assign="{{ (current_user.is_admin() or current_user.is_incident_manager() or current_user.is_dispatcher())|tojson }}"
       style="display:none;"></span>
@@ -255,7 +301,9 @@
     "assigned_team_name": {{ (incident.assigned_team.name if incident.assigned_team else none)|tojson }},
     "attachment_filename": {{ incident.attachment_filename|tojson }},
     "attachment_path": {{ incident.attachment_path|tojson }},
-    "is_awaiting": {{ (incident.status == 'awaiting_assignment')|tojson }}
+    "is_awaiting": {{ (incident.status == 'awaiting_assignment')|tojson }},
+    "nearest_station_id": {{ incident.nearest_station_id|tojson }},
+    "nearest_station_name": {{ incident.get_nearest_station_display()|tojson }}
 }{% if not loop.last %},{% endif %}
 {% endfor %}
 ]
@@ -264,10 +312,27 @@
 <!-- Teams data for assign dropdown -->
 <script id="teams-data" type="application/json">
 [
-{% for team in available_teams %}
+{% for team in all_teams %}
 {
     "id": {{ team.id }},
-    "name": {{ team.name|tojson }}
+    "name": {{ team.name|tojson }},
+    "station_id": {{ team.station_id|tojson }},
+    "station_display": {{ team.get_station_display()|tojson }},
+    "is_recommended": false
+}{% if not loop.last %},{% endif %}
+{% endfor %}
+]
+</script>
+
+<!-- Resources data for popups -->
+<script id="resources-data" type="application/json">
+[
+{% for resource in all_resources %}
+{
+    "id": {{ resource.id }},
+    "name": {{ resource.name|tojson }},
+    "quantity": {{ resource.quantity }},
+    "station_id": {{ resource.station_id|tojson }}
 }{% if not loop.last %},{% endif %}
 {% endfor %}
 ]
@@ -278,16 +343,15 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Initialize map centered on Bulgaria
         var map = L.map('operations-map').setView([42.6977, 23.3219], 11);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Get incident/team data and the assign-permission flag
         var incidents = JSON.parse(document.getElementById('incidents-data').textContent);
         var teams = JSON.parse(document.getElementById('teams-data').textContent);
+        var resources = JSON.parse(document.getElementById('resources-data').textContent);
         var canAssignTeams = document.getElementById('user-flags').dataset.canAssign === 'true';
 
         var colorMap = {
@@ -297,12 +361,10 @@
             low: '#28a745'
         };
 
-        // Add markers for each incident
         incidents.forEach(function(incident) {
             if (incident.lat && incident.lng) {
                 var color = colorMap[incident.priority] || '#28a745';
 
-                // Different marker style for awaiting vs active
                 var markerOptions = {
                     radius: incident.is_awaiting ? 10 : 14,
                     fillColor: color,
@@ -314,12 +376,15 @@
 
                 var marker = L.circleMarker([incident.lat, incident.lng], markerOptions).addTo(map);
 
-                // Build popup content
                 var popupContent = '<div style="min-width: 200px;">';
                 popupContent += '<b>' + incident.title + '</b><br>';
                 popupContent += '<span class="badge ' + (incident.is_awaiting ? 'bg-warning text-dark' : 'bg-danger') + '">' +
                     (incident.is_awaiting ? 'Очаква назначаване' : 'Активен') + '</span><br>';
                 popupContent += '<span class="text-muted small">' + incident.address + '</span><br>';
+                
+                if (incident.nearest_station_name) {
+                    popupContent += '<span class="text-muted small"><i class="fas fa-building"></i> Най-близка станция: ' + incident.nearest_station_name + '</span><br>';
+                }
 
                 if (incident.description) {
                     popupContent += '<p class="mt-1 mb-1 small">' + incident.description + '</p>';
@@ -331,26 +396,48 @@
                     popupContent += '</div>';
                 }
 
-                // Show assigned team if active
                 if (!incident.is_awaiting && incident.assigned_team_name) {
                     popupContent += '<div class="mt-1"><strong>Екип:</strong> ' + incident.assigned_team_name + '</div>';
                 }
 
-                // Assign team dropdown (only for Admins/Incident Managers/Dispatchers)
                 if (canAssignTeams && incident.is_awaiting) {
+                    // Filter teams by station
+                    var stationTeams = teams.filter(function(t) { 
+                        return t.station_id === incident.nearest_station_id; 
+                    });
+                    var otherTeams = teams.filter(function(t) { 
+                        return t.station_id !== incident.nearest_station_id; 
+                    });
+                    var sortedTeams = stationTeams.concat(otherTeams);
+                    
                     popupContent += '<div class="popup-team-assign">';
                     popupContent += '<select class="form-select form-select-sm map-assign-select" data-incident-id="' + incident.id + '">';
                     popupContent += '<option value="">Назначи екип...</option>';
-                    teams.forEach(function(team) {
-                        popupContent += '<option value="' + team.id + '">' + team.name + '</option>';
+                    sortedTeams.forEach(function(team) {
+                        var recommended = team.station_id === incident.nearest_station_id;
+                        popupContent += '<option value="' + team.id + '"' + (recommended ? ' class="team-option-recommended"' : '') + '>';
+                        popupContent += team.name + ' (' + team.station_display + ')';
+                        if (recommended) popupContent += ' - Препоръчан';
+                        popupContent += '</option>';
                     });
                     popupContent += '</select>';
                     popupContent += '<button class="btn btn-sm btn-danger map-assign-btn" data-incident-id="' + incident.id + '">Назначи</button>';
+                    
+                    // Show resources from the nearest station
+                    var stationResources = resources.filter(function(r) { return r.station_id === incident.nearest_station_id; });
+                    if (stationResources.length > 0) {
+                        popupContent += '<div class="station-resources">';
+                        popupContent += '<small class="text-muted">Ресурси от станцията:</small><br>';
+                        stationResources.forEach(function(r) {
+                            popupContent += '<span class="resource-item">' + r.name + ' (' + r.quantity + ')</span> ';
+                        });
+                        popupContent += '</div>';
+                    }
+                    
                     popupContent += '</div>';
                 }
 
                 popupContent += '</div>';
-
                 marker.bindPopup(popupContent);
             }
         });
@@ -414,7 +501,6 @@
             });
         });
 
-        // Auto-refresh every 60 seconds
         setInterval(function() {
             location.reload();
         }, 60000);

@@ -8,13 +8,23 @@ class Team(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
     
-    # Status is now auto-calculated - removed status column
+    # Station assignment
+    station_id = db.Column(db.Integer, nullable=True)  # 1, 2, 3
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationship
     members = db.relationship('User', back_populates='team', lazy=True)
+    
+    STATIONS = {
+        1: 'Център',
+        2: 'Люлин',
+        3: 'Младост'
+    }
+    
+    def get_station_display(self):
+        return self.STATIONS.get(self.station_id, 'Не е назначена')
     
     def get_status(self):
         """Auto-calculate team status based on active incidents."""

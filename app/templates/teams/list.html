@@ -13,68 +13,60 @@
     </a>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Име</th>
-                        <th>Статус</th>
-                        <th>Членове</th>
-                        <th>Създаден</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for team in teams %}
-                    <tr>
-                        <td>#{{ team.id }}</td>
-                        <td>
-                            <a href="{{ url_for('teams.detail_team', team_id=team.id) }}" class="text-decoration-none">
-                                {{ team.name }}
-                            </a>
-                        </td>
-                        <td>
-                            <span class="badge {{ team.get_status_badge_class() }}">
-                                {{ team.get_status_display() }}
-                            </span>
-                        </td>
-                        <td>
-                            <span class="badge bg-info text-dark">{{ team.members|length }}</span>
-                        </td>
-                        <td>
-                            <small>{{ team.created_at.strftime('%d.%m.%Y') }}</small>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('teams.detail_team', team_id=team.id) }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ url_for('teams.edit_team', team_id=team.id) }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTeam('{{ team.id }}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center py-4">
-                            <i class="fas fa-users text-muted" style="font-size: 2rem;"></i>
-                            <p class="text-muted mt-2">Няма създадени екипи.</p>
-                            <a href="{{ url_for('teams.create_team') }}" class="btn btn-danger btn-sm">
-                                <i class="fas fa-plus"></i> Създайте първия
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+{% if teams %}
+    {% set current_station = None %}
+    {% for team in teams %}
+        {% if current_station != team.station_id %}
+            {% if not loop.first %}</div></div>{% endif %}
+            {% set current_station = team.station_id %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-building me-2"></i>
+                        Станция: {{ team.get_station_display() }}
+                    </h5>
+                </div>
+                <div class="card-body">
+        {% endif %}
+        
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div>
+                <div class="fw-bold">
+                    <a href="{{ url_for('teams.detail_team', team_id=team.id) }}" class="text-decoration-none">
+                        {{ team.name }}
+                    </a>
+                </div>
+                <small class="text-muted">{{ team.members|length }} служителя</small>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge {{ team.get_status_badge_class() }}">
+                    {{ team.get_status_display() }}
+                </span>
+                <a href="{{ url_for('teams.detail_team', team_id=team.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="{{ url_for('teams.edit_team', team_id=team.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteTeam('{{ team.id }}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+        
+        {% if loop.last %}</div></div>{% endif %}
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-4">
+            <i class="fas fa-users text-muted" style="font-size: 2rem;"></i>
+            <p class="text-muted mt-2">Няма създадени екипи.</p>
+            <a href="{{ url_for('teams.create_team') }}" class="btn btn-danger btn-sm">
+                <i class="fas fa-plus"></i> Създайте първия
+            </a>
         </div>
     </div>
-</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}

@@ -20,6 +20,9 @@ class User(UserMixin, db.Model):
     phone_number = db.Column(db.String(20), nullable=True)
     profile_picture = db.Column(db.String(500), nullable=True)  # path to uploaded image
     
+    # Station assignment (for firefighters)
+    station_id = db.Column(db.Integer, nullable=True)  # 1, 2, 3
+    
     # Ban fields (kept for compatibility, but ban functionality removed)
     is_banned = db.Column(db.Boolean, default=False)
     ban_reason = db.Column(db.Text, nullable=True)
@@ -46,6 +49,12 @@ class User(UserMixin, db.Model):
         'user': 'Потребител'
     }
     
+    STATIONS = {
+        1: 'Център',
+        2: 'Люлин',
+        3: 'Младост'
+    }
+    
     def set_password(self, password):
         self.password = generate_password_hash(password)
     
@@ -54,6 +63,9 @@ class User(UserMixin, db.Model):
     
     def get_role_display(self):
         return self.ROLES.get(self.role, self.role)
+    
+    def get_station_display(self):
+        return self.STATIONS.get(self.station_id, 'Не е назначен')
     
     def is_admin(self):
         return self.role == 'admin'

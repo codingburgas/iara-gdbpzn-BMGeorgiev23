@@ -26,19 +26,29 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="station_id" class="form-label">Станция <span class="text-danger">*</span></label>
+                        <select class="form-select" id="station_id" name="station_id" required onchange="filterMembers()">
+                            <option value="">Изберете станция...</option>
+                            <option value="1">Център</option>
+                            <option value="2">Люлин</option>
+                            <option value="3">Младост</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label class="form-label">Добави членове</label>
                         <div class="input-group">
                             <select class="form-select" id="member-select">
                                 <option value="">Изберете пожарникар...</option>
                                 {% for user in available_members %}
-                                    <option value="{{ user.id }}">{{ user.name }}</option>
+                                    <option value="{{ user.id }}" data-station="{{ user.station_id }}">{{ user.name }} ({{ user.get_station_display() }})</option>
                                 {% endfor %}
                             </select>
                             <button class="btn btn-danger" type="button" id="add-member-btn">
                                 <i class="fas fa-plus"></i> Добави
                             </button>
                         </div>
-                        <small class="text-muted">Само пожарникари без назначен екип се показват.</small>
+                        <small class="text-muted">Само пожарникари без назначен екип се показват. След избор на станция, само пожарникари от нея ще се виждат.</small>
                     </div>
                     
                     <div class="mb-3">
@@ -70,7 +80,7 @@
                     <li><i class="fas fa-exclamation-triangle text-warning"></i> <strong>На мисия</strong> – Работи по активни произшествия</li>
                 </ul>
                 <hr>
-                <p class="text-muted small">Можете да добавяте само регистрирани пожарникари.</p>
+                <p class="text-muted small">Можете да добавяте само пожарникари от същата станция.</p>
             </div>
         </div>
     </div>
@@ -85,24 +95,38 @@
         var addBtn = document.getElementById('add-member-btn');
         var selectedContainer = document.getElementById('selected-members');
         var membersInput = document.getElementById('members-input');
+        var stationSelect = document.getElementById('station_id');
         
-        // Update hidden input with selected member IDs
+        function filterMembers() {
+            var stationId = stationSelect.value;
+            var options = memberSelect.querySelectorAll('option');
+            options.forEach(function(opt) {
+                if (opt.value === '') return;
+                var optStation = opt.getAttribute('data-station');
+                if (stationId && optStation !== stationId) {
+                    opt.style.display = 'none';
+                } else {
+                    opt.style.display = '';
+                }
+            });
+            memberSelect.value = '';
+        }
+        
         function updateHiddenInput() {
             membersInput.value = selectedMembers.join(',');
         }
         
-        // Render selected members
         function renderSelectedMembers() {
             selectedContainer.innerHTML = '';
             selectedMembers.forEach(function(id) {
-                var name = memberSelect.querySelector('option[value="' + id + '"]').text;
+                var option = memberSelect.querySelector('option[value="' + id + '"]');
+                var name = option ? option.text : 'Пожарникар';
                 var badge = document.createElement('span');
                 badge.className = 'badge bg-primary d-inline-flex align-items-center gap-1 p-2';
                 badge.innerHTML = name + ' <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-member-id="' + id + '"></button>';
                 selectedContainer.appendChild(badge);
             });
             
-            // Add remove event listeners
             selectedContainer.querySelectorAll('.btn-close').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var id = parseInt(this.dataset.memberId);
@@ -115,7 +139,8 @@
             updateHiddenInput();
         }
         
-        // Add member
+        stationSelect.addEventListener('change', filterMembers);
+        
         addBtn.addEventListener('click', function() {
             var id = parseInt(memberSelect.value);
             if (!id) {
@@ -130,7 +155,6 @@
             renderSelectedMembers();
         });
         
-        // Allow pressing Enter to add
         memberSelect.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();

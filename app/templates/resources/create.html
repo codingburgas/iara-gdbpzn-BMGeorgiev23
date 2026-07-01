@@ -30,27 +30,12 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="quantity" class="form-label">Количество</label>
-                        <input type="number" class="form-control" id="quantity" name="quantity" value="0" min="0">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Статус</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="available">Наличен</option>
-                            <option value="in_use">В употреба</option>
-                            <option value="low">Ограничен</option>
-                            <option value="depleted">Изчерпан</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
                         <label for="station_id" class="form-label">Станция <span class="text-danger">*</span></label>
                         <select class="form-select" id="station_id" name="station_id" required>
                             <option value="">Изберете станция...</option>
-                            <option value="1">София</option>
-                            <option value="2">Пловдив</option>
-                            <option value="3">Варна</option>
+                            <option value="1">Център</option>
+                            <option value="2">Люлин</option>
+                            <option value="3">Младост</option>
                         </select>
                     </div>
                     
@@ -75,9 +60,10 @@
             </div>
             <div class="card-body">
                 <ul class="list-unstyled small text-muted">
-                    <li><i class="fas fa-check-circle text-success"></i> Мерната единица се определя автоматично</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Ресурсите са превозни средства и оборудване</li>
                     <li><i class="fas fa-check-circle text-success"></i> При "Друго", описанието е задължително</li>
                     <li><i class="fas fa-check-circle text-success"></i> Изберете станция за ресурса</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Статусът на ресурса се задава от станцията</li>
                 </ul>
             </div>
         </div>

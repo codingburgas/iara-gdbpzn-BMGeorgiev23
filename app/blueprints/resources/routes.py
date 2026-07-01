@@ -23,8 +23,6 @@ def create_resource():
         name = request.form.get('name')
         description = request.form.get('description')
         category = request.form.get('category')
-        quantity = int(request.form.get('quantity', 0))
-        status = request.form.get('status', 'available')
         station_id = request.form.get('station_id')
         
         if not name or not category:
@@ -44,8 +42,8 @@ def create_resource():
             name=name,
             description=description,
             category=category,
-            quantity=quantity,
-            status=status,
+            quantity=1,  # Default to 1 for vehicles/equipment
+            status='available',
             station_id=int(station_id)
         )
         
@@ -67,7 +65,7 @@ def edit_resource(resource_id):
         resource.name = request.form.get('name')
         resource.description = request.form.get('description')
         resource.category = request.form.get('category')
-        resource.quantity = int(request.form.get('quantity', 0))
+        resource.quantity = 1
         resource.status = request.form.get('status')
         resource.station_id = int(request.form.get('station_id'))
         resource.updated_at = datetime.utcnow()
@@ -107,6 +105,23 @@ def update_status(resource_id):
         return jsonify({'success': True, 'status': resource.get_status_display()})
     
     return jsonify({'success': False, 'error': 'Invalid status'}), 400
+
+@resources_bp.route('/<int:resource_id>/move', methods=['POST'])
+@login_required
+@role_required(['admin', 'incident_manager'])
+def move_resource(resource_id):
+    resource = Resource.query.get_or_404(resource_id)
+    data = request.json
+    new_station_id = data.get('station_id')
+    
+    if not new_station_id:
+        return jsonify({'error': 'Station ID required'}), 400
+    
+    resource.station_id = new_station_id
+    resource.updated_at = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify({'success': True, 'station_id': new_station_id})
 
 @resources_bp.route('/requests')
 @login_required

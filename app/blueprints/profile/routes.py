@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import os
+from datetime import datetime  # <-- ADD THIS IMPORT
 from . import profile_bp
 from app import db
 from app.models.user import User

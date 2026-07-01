@@ -26,13 +26,22 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="station_id" class="form-label">Станция <span class="text-danger">*</span></label>
+                        <select class="form-select" id="station_id" name="station_id" required>
+                            <option value="1" {% if team.station_id == 1 %}selected{% endif %}>Център</option>
+                            <option value="2" {% if team.station_id == 2 %}selected{% endif %}>Люлин</option>
+                            <option value="3" {% if team.station_id == 3 %}selected{% endif %}>Младост</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label class="form-label">Добави членове</label>
                         <div class="input-group">
                             <select class="form-select" id="member-select">
                                 <option value="">Изберете пожарникар...</option>
                                 {% for user in all_firefighters %}
                                     {% if user.id not in current_member_ids %}
-                                        <option value="{{ user.id }}">{{ user.name }}</option>
+                                        <option value="{{ user.id }}" data-station="{{ user.station_id }}">{{ user.name }} ({{ user.get_station_display() }})</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>
@@ -40,7 +49,7 @@
                                 <i class="fas fa-plus"></i> Добави
                             </button>
                         </div>
-                        <small class="text-muted">Само пожарникари без назначен екип се показват.</small>
+                        <small class="text-muted">Само пожарникари от същата станция могат да бъдат добавени.</small>
                     </div>
                     
                     <div class="mb-3">
@@ -77,6 +86,7 @@
         var addBtn = document.getElementById('add-member-btn');
         var selectedContainer = document.getElementById('selected-members');
         var membersInput = document.getElementById('members-input');
+        var stationSelect = document.getElementById('station_id');
         
         // Initialize selected members from existing
         document.querySelectorAll('#selected-members .badge').forEach(function(badge) {
@@ -85,6 +95,21 @@
                 selectedMembers.push(id);
             }
         });
+        
+        function filterMembers() {
+            var stationId = stationSelect.value;
+            var options = memberSelect.querySelectorAll('option');
+            options.forEach(function(opt) {
+                if (opt.value === '') return;
+                var optStation = opt.getAttribute('data-station');
+                if (stationId && optStation !== stationId) {
+                    opt.style.display = 'none';
+                } else {
+                    opt.style.display = '';
+                }
+            });
+            memberSelect.value = '';
+        }
         
         function updateHiddenInput() {
             membersInput.value = selectedMembers.join(',');
@@ -97,10 +122,10 @@
                 if (id) currentIds.push(id);
             });
             
-            // Add new members that aren't already displayed
             selectedMembers.forEach(function(id) {
                 if (!currentIds.includes(id)) {
-                    var name = memberSelect.querySelector('option[value="' + id + '"]')?.text || 'Пожарникар';
+                    var option = memberSelect.querySelector('option[value="' + id + '"]');
+                    var name = option ? option.text : 'Пожарникар';
                     var badge = document.createElement('span');
                     badge.className = 'badge bg-primary d-inline-flex align-items-center gap-1 p-2';
                     badge.dataset.memberId = id;
@@ -109,7 +134,6 @@
                 }
             });
             
-            // Remove members that are no longer selected
             selectedContainer.querySelectorAll('.badge').forEach(function(badge) {
                 var id = parseInt(badge.dataset.memberId);
                 if (!selectedMembers.includes(id)) {
@@ -117,12 +141,10 @@
                 }
             });
             
-            // Add remove event listeners
             selectedContainer.querySelectorAll('.remove-member').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     var id = parseInt(this.dataset.memberId);
                     selectedMembers = selectedMembers.filter(function(m) { return m !== id; });
-                    // Re-enable the option in the dropdown
                     var option = memberSelect.querySelector('option[value="' + id + '"]');
                     if (option) {
                         option.disabled = false;
@@ -136,23 +158,44 @@
             updateHiddenInput();
         }
         
-        // Add member
+        stationSelect.addEventListener('change', function() {
+            filterMembers();
+            // Remove members that don't match the new station
+            var newStation = this.value;
+            selectedMembers = selectedMembers.filter(function(id) {
+                var option = memberSelect.querySelector('option[value="' + id + '"]');
+                if (option) {
+                    var optStation = option.getAttribute('data-station');
+                    return optStation === newStation;
+                }
+                return false;
+            });
+            renderSelectedMembers();
+            updateHiddenInput();
+        });
+        
         addBtn.addEventListener('click', function() {
             var id = parseInt(memberSelect.value);
+            var stationId = stationSelect.value;
             if (!id) {
                 alert('Моля, изберете пожарникар.');
                 return;
+            }
+            var option = memberSelect.querySelector('option[value="' + id + '"]');
+            if (option) {
+                var optStation = option.getAttribute('data-station');
+                if (optStation !== stationId) {
+                    alert('Този пожарникар не е от същата станция като екипа.');
+                    return;
+                }
             }
             if (selectedMembers.includes(id)) {
                 alert('Този пожарникар вече е добавен.');
                 return;
             }
             selectedMembers.push(id);
-            var option = memberSelect.querySelector('option[value="' + id + '"]');
-            if (option) {
-                option.disabled = true;
-                option.style.display = 'none';
-            }
+            option.disabled = true;
+            option.style.display = 'none';
             renderSelectedMembers();
         });
         
@@ -163,6 +206,8 @@
             }
         });
         
+        // Initial filter
+        filterMembers();
         renderSelectedMembers();
         updateHiddenInput();
     });
