@@ -11,7 +11,6 @@
 </div>
 
 <div class="row mt-4">
-    <!-- Profile Picture -->
     <div class="col-md-4">
         <div class="card">
             <div class="card-body text-center">
@@ -20,9 +19,7 @@
                         {% if user.profile_picture %}
                             <img src="{{ url_for('static', filename='uploads/' + user.profile_picture) }}" alt="Profile Picture" style="width: 100%; height: 100%; object-fit: cover;">
                         {% else %}
-                            <div style="width: 100%; height: 100%; background: #dc3545; color: white; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: bold;">
-                                {{ user.name[0]|upper }}
-                            </div>
+                            <img src="{{ url_for('static', filename='images/symbolLogo.png') }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; padding: 1.5rem;">
                         {% endif %}
                     </div>
                     <form method="POST" action="{{ url_for('profile.upload_picture') }}" enctype="multipart/form-data" class="mt-2">
@@ -41,7 +38,6 @@
         </div>
     </div>
     
-    <!-- Profile Info -->
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
@@ -82,7 +78,6 @@
             </div>
         </div>
         
-        <!-- Change Password -->
         <div class="card mt-4">
             <div class="card-header">
                 <i class="fas fa-key"></i> Смяна на парола
@@ -119,19 +114,16 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Show password form
         document.getElementById('show-password-form').addEventListener('click', function() {
             document.getElementById('password-form').style.display = 'block';
             this.style.display = 'none';
         });
         
-        // Hide password form
         document.getElementById('hide-password-form').addEventListener('click', function() {
             document.getElementById('password-form').style.display = 'none';
             document.getElementById('show-password-form').style.display = 'inline-block';
         });
         
-        // Profile picture upload
         document.getElementById('profile_picture').addEventListener('change', function() {
             if (this.files.length > 0) {
                 document.getElementById('upload-btn').style.display = 'inline-block';
