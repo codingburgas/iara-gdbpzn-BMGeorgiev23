@@ -12,9 +12,8 @@ from app.utils.decorators import staff_required, admin_required, role_required
 @login_required
 @staff_required
 def inventory():
-    resources = Resource.query.order_by(Resource.category, Resource.name).all()
-    categories = db.session.query(Resource.category).distinct().all()
-    return render_template('resources/inventory.html', title='Инвентар', resources=resources, categories=categories)
+    resources = Resource.query.order_by(Resource.station_id, Resource.category, Resource.name).all()
+    return render_template('resources/inventory.html', title='Ресурси', resources=resources)
 
 @resources_bp.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -25,12 +24,20 @@ def create_resource():
         description = request.form.get('description')
         category = request.form.get('category')
         quantity = int(request.form.get('quantity', 0))
-        unit = request.form.get('unit', 'бр.')
         status = request.form.get('status', 'available')
-        location = request.form.get('location')
+        station_id = request.form.get('station_id')
         
         if not name or not category:
             flash('Името и категорията са задължителни.', 'danger')
+            return render_template('resources/create.html')
+        
+        # If category is 'other', description is required
+        if category == 'other' and not description:
+            flash('При избор на "Друго", описанието е задължително.', 'danger')
+            return render_template('resources/create.html')
+        
+        if not station_id:
+            flash('Моля, изберете станция.', 'danger')
             return render_template('resources/create.html')
         
         resource = Resource(
@@ -38,9 +45,8 @@ def create_resource():
             description=description,
             category=category,
             quantity=quantity,
-            unit=unit,
             status=status,
-            location=location
+            station_id=int(station_id)
         )
         
         db.session.add(resource)
@@ -62,10 +68,13 @@ def edit_resource(resource_id):
         resource.description = request.form.get('description')
         resource.category = request.form.get('category')
         resource.quantity = int(request.form.get('quantity', 0))
-        resource.unit = request.form.get('unit', 'бр.')
         resource.status = request.form.get('status')
-        resource.location = request.form.get('location')
-        resource.last_updated = datetime.utcnow()
+        resource.station_id = int(request.form.get('station_id'))
+        resource.updated_at = datetime.utcnow()
+        
+        if resource.category == 'other' and not resource.description:
+            flash('При избор на "Друго", описанието е задължително.', 'danger')
+            return render_template('resources/edit.html', resource=resource)
         
         db.session.commit()
         flash('Ресурсът е обновен успешно.', 'success')
@@ -82,6 +91,22 @@ def delete_resource(resource_id):
     db.session.commit()
     flash('Ресурсът е изтрит.', 'success')
     return redirect(url_for('resources.inventory'))
+
+@resources_bp.route('/<int:resource_id>/update-status', methods=['POST'])
+@login_required
+@staff_required
+def update_status(resource_id):
+    resource = Resource.query.get_or_404(resource_id)
+    data = request.json
+    status = data.get('status')
+    
+    if status in ['available', 'in_use', 'low', 'depleted']:
+        resource.status = status
+        resource.updated_at = datetime.utcnow()
+        db.session.commit()
+        return jsonify({'success': True, 'status': resource.get_status_display()})
+    
+    return jsonify({'success': False, 'error': 'Invalid status'}), 400
 
 @resources_bp.route('/requests')
 @login_required
@@ -110,9 +135,9 @@ def api_resources():
             'name': resource.name,
             'category': resource.get_category_display(),
             'quantity': resource.quantity,
-            'unit': resource.unit,
+            'unit': resource.get_unit(),
             'status': resource.get_status_display(),
-            'location': resource.location or 'Не е указано',
+            'station_id': resource.station_id,
             'last_updated': resource.last_updated.strftime('%d.%m.%Y %H:%M')
         })
     return jsonify(data)
@@ -127,30 +152,8 @@ def update_quantity(resource_id):
     
     if quantity is not None:
         resource.quantity = quantity
-        resource.last_updated = datetime.utcnow()
+        resource.updated_at = datetime.utcnow()
         db.session.commit()
         return jsonify({'success': True, 'new_quantity': resource.quantity})
     
     return jsonify({'success': False, 'error': 'Invalid quantity'}), 400
-
-@resources_bp.route('/<int:resource_id>/assign', methods=['POST'])
-@login_required
-@staff_required
-def assign_resource(resource_id):
-    resource = Resource.query.get_or_404(resource_id)
-    data = request.json
-    
-    incident_id = data.get('incident_id')
-    team_id = data.get('team_id')
-    
-    if incident_id:
-        resource.assigned_incident_id = incident_id
-        resource.status = 'in_use'
-    elif team_id:
-        resource.assigned_team_id = team_id
-        resource.status = 'in_use'
-    else:
-        return jsonify({'success': False, 'error': 'No assignment specified'}), 400
-    
-    db.session.commit()
-    return jsonify({'success': True})

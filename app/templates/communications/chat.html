@@ -8,9 +8,9 @@
         <h1 class="display-6 fw-bold">Чат</h1>
         <p class="text-muted">Комуникация между екипите</p>
     </div>
-    <a href="{{ url_for('communications.message_templates') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-list"></i> Шаблони
-    </a>
+    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createChannelModal">
+        <i class="fas fa-plus"></i> Създай канал
+    </button>
 </div>
 
 <div class="row">
@@ -21,15 +21,30 @@
                 <i class="fas fa-comments"></i> Канали
             </div>
             <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    <a href="#" class="list-group-item list-group-item-action active" data-incident-id="0">
-                        <i class="fas fa-bullhorn"></i> Общ канал
-                    </a>
-                    {% for incident in incidents %}
-                    <a href="#" class="list-group-item list-group-item-action" data-incident-id="{{ incident.id }}">
-                        <span class="badge bg-danger me-1">{{ incident.get_type_display() }}</span>
-                        {{ incident.title[:30] }}
-                    </a>
+                <div class="list-group list-group-flush" id="channel-list">
+                    {% for channel in channels %}
+                        {% if channel.can_user_access(current_user) %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="#" class="text-decoration-none flex-grow-1 channel-link" 
+                               data-channel-id="{{ channel.id }}" 
+                               data-channel-type="{{ channel.channel_type }}">
+                                {% if channel.channel_type == 'general' %}
+                                    <i class="fas fa-hashtag me-1"></i>
+                                {% else %}
+                                    <i class="fas fa-users me-1"></i>
+                                {% endif %}
+                                {{ channel.name }}
+                            </a>
+                            {% if current_user.is_admin() %}
+                            <button class="btn btn-sm btn-outline-secondary channel-settings-btn" 
+                                    data-channel-id="{{ channel.id }}"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#channelSettingsModal">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -40,7 +55,7 @@
     <div class="col-md-6 mb-4">
         <div class="card">
             <div class="card-header">
-                <span id="chat-title"><i class="fas fa-bullhorn"></i> Общ канал</span>
+                <span id="chat-title"><i class="fas fa-hashtag"></i> Общ канал</span>
                 <span class="badge bg-success ms-2">На линия</span>
             </div>
             <div class="card-body" id="chat-messages" style="height: 400px; overflow-y: auto;">
@@ -51,9 +66,6 @@
             </div>
             <div class="card-footer">
                 <div class="input-group">
-                    <button class="btn btn-outline-secondary" id="template-btn" title="Шаблони">
-                        <i class="fas fa-list"></i>
-                    </button>
                     <button class="btn btn-outline-danger" id="emergency-btn" title="Спешно съобщение">
                         <i class="fas fa-exclamation-triangle"></i>
                     </button>
@@ -62,15 +74,6 @@
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </div>
-                <div id="template-dropdown" class="mt-2" style="display: none;">
-                    <select class="form-select form-select-sm" id="template-select">
-                        <option value="">Изберете шаблон...</option>
-                        {% for template in templates %}
-                        <option value="{{ template.content }}">{{ template.template_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <!-- Emergency input (hidden by default) -->
                 <div id="emergency-input-container" class="mt-2" style="display: none;">
                     <div class="input-group">
                         <input type="text" class="form-control border-danger" id="emergency-input" placeholder="Напишете спешно съобщение...">
@@ -100,7 +103,91 @@
                         <span class="badge bg-secondary"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Извън линия</span>
                     </div>
                 </div>
+                <div id="channel-info">
+                    <h6>Информация за канала</h6>
+                    <p class="small text-muted" id="channel-detail-info">Изберете канал за да видите детайли.</p>
+                </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Channel Modal -->
+<div class="modal fade" id="createChannelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-hashtag"></i> Създаване на канал
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="createChannelForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="channel_name" class="form-label">Име на канала <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="channel_name" name="name" required placeholder="Напр. Кризисен център">
+                    </div>
+                    <div class="mb-3">
+                        <label for="channel_description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="channel_description" name="description" rows="2" placeholder="Каква е целта на канала?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="channel_type" class="form-label">Тип канал</label>
+                        <select class="form-select" id="channel_type" name="channel_type">
+                            <option value="general">Общ канал</option>
+                            <option value="team">Екипен канал</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="team-select-container" style="display: none;">
+                        <label for="channel_team_id" class="form-label">Изберете екип <span class="text-danger">*</span></label>
+                        <select class="form-select" id="channel_team_id" name="team_id">
+                            <option value="">Изберете екип...</option>
+                            {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Само членовете на този екип ще имат достъп до канала.</small>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Информация:</strong> Общите канали са достъпни за всички служители. Екипните канали са достъпни само за членовете на избрания екип, администратори и мениджъри.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-plus"></i> Създай
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Channel Settings Modal -->
+<div class="modal fade" id="channelSettingsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cog"></i> Настройки на канала
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="channelSettingsForm">
+                <div class="modal-body" id="channel-settings-body">
+                    <div class="text-center py-3">
+                        <i class="fas fa-spinner fa-spin"></i> Зареждане...
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Затвори</button>
+                    <button type="submit" class="btn btn-danger" id="save-channel-btn">
+                        <i class="fas fa-save"></i> Запази промените
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -111,6 +198,243 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         initializeChat();
+        initializeChannelCreation();
+        initializeChannelSettings();
     });
+
+    function initializeChannelCreation() {
+        var form = document.getElementById('createChannelForm');
+        var typeSelect = document.getElementById('channel_type');
+        var teamContainer = document.getElementById('team-select-container');
+        var teamSelect = document.getElementById('channel_team_id');
+        
+        if (typeSelect) {
+            typeSelect.addEventListener('change', function() {
+                if (this.value === 'team') {
+                    teamContainer.style.display = 'block';
+                    teamSelect.required = true;
+                } else {
+                    teamContainer.style.display = 'none';
+                    teamSelect.required = false;
+                }
+            });
+        }
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                var name = document.getElementById('channel_name').value.trim();
+                var description = document.getElementById('channel_description').value.trim();
+                var channelType = document.getElementById('channel_type').value;
+                var teamId = document.getElementById('channel_team_id').value;
+                
+                if (!name) {
+                    alert('Моля, въведете име на канала.');
+                    return;
+                }
+                
+                if (channelType === 'team' && !teamId) {
+                    alert('Моля, изберете екип за екипния канал.');
+                    return;
+                }
+                
+                var payload = {
+                    name: name,
+                    description: description,
+                    channel_type: channelType
+                };
+                
+                if (channelType === 'team') {
+                    payload.team_id = parseInt(teamId);
+                }
+                
+                fetch('/communications/api/channels', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                }).then(function(response) {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Възникна грешка при създаването на канала.');
+                    }
+                });
+            });
+        }
+    }
+
+    function initializeChannelSettings() {
+        var settingsBtns = document.querySelectorAll('.channel-settings-btn');
+        var settingsBody = document.getElementById('channel-settings-body');
+        var settingsForm = document.getElementById('channelSettingsForm');
+        var currentChannelId = null;
+        
+        settingsBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                currentChannelId = this.dataset.channelId;
+                loadChannelSettings(currentChannelId);
+            });
+        });
+        
+        function loadChannelSettings(channelId) {
+            fetch('/communications/api/channels/' + channelId)
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    var html = '';
+                    html += '<input type="hidden" id="settings_channel_id" value="' + data.id + '">';
+                    
+                    html += '<div class="mb-3">';
+                    html += '<label for="settings_name" class="form-label fw-bold">Име</label>';
+                    html += '<input type="text" class="form-control" id="settings_name" value="' + data.name + '" required>';
+                    html += '</div>';
+                    
+                    html += '<div class="mb-3">';
+                    html += '<label for="settings_type" class="form-label fw-bold">Тип</label>';
+                    html += '<select class="form-select" id="settings_type">';
+                    html += '<option value="general"' + (data.type === 'general' ? ' selected' : '') + '>Общ</option>';
+                    html += '<option value="team"' + (data.type === 'team' ? ' selected' : '') + '>Екип</option>';
+                    html += '</select>';
+                    html += '</div>';
+                    
+                    var teamDisplay = data.type === 'team' ? 'block' : 'none';
+                    html += '<div class="mb-3" id="settings_team_container" style="display: ' + teamDisplay + ';">';
+                    html += '<label for="settings_team" class="form-label fw-bold">Назначен екип</label>';
+                    html += '<select class="form-select" id="settings_team">';
+                    html += '<option value="">Изберете екип...</option>';
+                    
+                    fetch('/teams/api/data')
+                        .then(function(response) { return response.json(); })
+                        .then(function(teams) {
+                            var teamSelect = document.getElementById('settings_team');
+                            teams.forEach(function(team) {
+                                var selected = data.team_id == team.id ? ' selected' : '';
+                                teamSelect.innerHTML += '<option value="' + team.id + '"' + selected + '>' + team.name + '</option>';
+                            });
+                        });
+                    
+                    html += '</select>';
+                    html += '<small class="text-muted">Само членовете на този екип ще имат достъп до канала.</small>';
+                    html += '</div>';
+                    
+                    html += '<div class="mb-3">';
+                    html += '<label class="fw-bold">Достъп</label>';
+                    html += '<p class="form-control-plaintext" id="settings_access_info">' + data.access_info + '</p>';
+                    html += '</div>';
+                    
+                    html += '<div class="mb-3">';
+                    html += '<label class="fw-bold">Създаден от</label>';
+                    html += '<p class="form-control-plaintext">' + data.created_by + ' на ' + data.created_at + '</p>';
+                    html += '</div>';
+                    
+                    html += '<hr>';
+                    html += '<div class="text-center">';
+                    html += '<button type="button" class="btn btn-danger" onclick="deleteChannel(' + data.id + ', \'' + data.name + '\')">';
+                    html += '<i class="fas fa-trash"></i> Изтрий канала';
+                    html += '</button>';
+                    html += '</div>';
+                    
+                    settingsBody.innerHTML = html;
+                    
+                    var typeSelect = document.getElementById('settings_type');
+                    if (typeSelect) {
+                        typeSelect.addEventListener('change', function() {
+                            var teamContainer = document.getElementById('settings_team_container');
+                            if (this.value === 'team') {
+                                teamContainer.style.display = 'block';
+                            } else {
+                                teamContainer.style.display = 'none';
+                            }
+                            updateAccessInfo();
+                        });
+                    }
+                    
+                    var teamSelect = document.getElementById('settings_team');
+                    if (teamSelect) {
+                        teamSelect.addEventListener('change', function() {
+                            updateAccessInfo();
+                        });
+                    }
+                    
+                    function updateAccessInfo() {
+                        var type = document.getElementById('settings_type').value;
+                        var accessInfo = document.getElementById('settings_access_info');
+                        if (type === 'general') {
+                            accessInfo.textContent = 'Всички служители';
+                        } else {
+                            var teamSelect = document.getElementById('settings_team');
+                            var teamName = teamSelect.options[teamSelect.selectedIndex]?.text || 'Изберете екип';
+                            accessInfo.textContent = 'Екип "' + teamName + '"';
+                        }
+                    }
+                });
+        }
+        
+        if (settingsForm) {
+            settingsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                var channelId = document.getElementById('settings_channel_id').value;
+                var name = document.getElementById('settings_name').value.trim();
+                var type = document.getElementById('settings_type').value;
+                var teamId = document.getElementById('settings_team')?.value || null;
+                
+                if (!name) {
+                    alert('Моля, въведете име на канала.');
+                    return;
+                }
+                
+                if (type === 'team' && !teamId) {
+                    alert('Моля, изберете екип за екипния канал.');
+                    return;
+                }
+                
+                var payload = {
+                    name: name,
+                    channel_type: type
+                };
+                
+                if (type === 'team' && teamId) {
+                    payload.team_id = parseInt(teamId);
+                } else {
+                    payload.team_id = null;
+                }
+                
+                fetch('/communications/api/channels/' + channelId, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                }).then(function(response) {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Възникна грешка при запазването на промените.');
+                    }
+                });
+            });
+        }
+    }
+
+    function deleteChannel(id, name) {
+        var confirm1 = confirm('Сигурни ли сте, че искате да изтриете канала "' + name + '"?');
+        if (!confirm1) return;
+        
+        var confirm2 = confirm('Това действие е НЕОБРАТИМО. Всички съобщения в канала ще бъдат изтрити. Сигурни ли сте?');
+        if (!confirm2) return;
+        
+        fetch('/communications/api/channels/' + id, {
+            method: 'DELETE'
+        }).then(function(response) {
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Възникна грешка при изтриването на канала.');
+            }
+        });
+    }
 </script>
 {% endblock %}

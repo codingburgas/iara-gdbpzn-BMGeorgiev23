@@ -27,6 +27,13 @@
                         <label for="confirm_password" class="form-label">Потвърдете паролата</label>
                         <input type="password" class="form-control" id="confirm_password" name="confirm_password" required placeholder="Повторете паролата">
                     </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                        <label class="form-check-label" for="terms">
+                            Съгласен съм с <a href="{{ url_for('main.terms') }}" target="_blank">Условията за ползване</a>
+                            <span class="text-danger">*</span>
+                        </label>
+                    </div>
                     <button type="submit" class="btn btn-danger w-100">Регистрация</button>
                 </form>
                 <div class="mt-3 text-center">

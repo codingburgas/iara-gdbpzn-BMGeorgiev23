@@ -41,6 +41,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
+        terms = request.form.get('terms')
         
         if not name or not email or not password:
             flash('Всички полета са задължителни.', 'danger')
@@ -52,6 +53,10 @@ def register():
         
         if len(password) < 6:
             flash('Паролата трябва да бъде поне 6 символа.', 'danger')
+            return render_template('auth/register.html')
+        
+        if not terms:
+            flash('Моля, съгласете се с Условията за ползване.', 'danger')
             return render_template('auth/register.html')
         
         existing_user = User.query.filter_by(email=email).first()

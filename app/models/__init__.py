@@ -6,3 +6,4 @@ from .resource import Resource
 from .message import Message
 from .notification import Notification
 from .warning import Warning
+from .channel import Channel

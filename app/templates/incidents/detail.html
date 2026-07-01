@@ -24,6 +24,15 @@
                 <i class="fas fa-check-circle"></i> Приключи
             </button>
         {% endif %}
+        {% if current_user.is_admin() or current_user.is_incident_manager() %}
+            {% if not incident.is_false_alarm and not incident.is_resolved() %}
+            <form method="POST" action="{{ url_for('incidents.mark_false_alarm', incident_id=incident.id) }}" class="d-inline" onsubmit="return confirm('Сигурни ли сте, че искате да маркирате това произшествие като ФАЛШИВ СИГНАЛ? Това ще даде предупреждение на потребителя, който го е създал.')">
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Маркирай като фалшив сигнал
+                </button>
+            </form>
+            {% endif %}
+        {% endif %}
         <a href="{{ url_for('incidents.edit_incident', incident_id=incident.id) }}" class="btn btn-outline-secondary">
             <i class="fas fa-edit"></i> Редактирай
         </a>
@@ -44,7 +53,9 @@
                 <div class="row mb-3">
                     <div class="col-sm-4 fw-bold">Статус</div>
                     <div class="col-sm-8">
-                        {% if incident.status == 'active' %}
+                        {% if incident.status == 'awaiting_assignment' %}
+                            <span class="badge bg-secondary">Очаква назначаване</span>
+                        {% elif incident.status == 'active' %}
                             <span class="badge bg-danger">Активен</span>
                         {% elif incident.status == 'in_progress' %}
                             <span class="badge bg-warning text-dark">В процес</span>
@@ -82,6 +93,13 @@
                 {% if incident.is_resolved() %}
                 <hr>
                 <h6 class="fw-bold text-success"><i class="fas fa-check-circle"></i> Детайли по разрешаването</h6>
+                {% if incident.is_false_alarm %}
+                <div class="alert alert-danger mt-2">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>ФАЛШИВ СИГНАЛ</strong>
+                    <p class="mb-0 small">Това произшествие е маркирано като фалшив сигнал. Потребителят {{ incident.created_by.name }} получи предупреждение.</p>
+                </div>
+                {% endif %}
                 <div class="row mt-3">
                     <div class="col-sm-4 fw-bold">Спасени животи</div>
                     <div class="col-sm-8">{{ incident.lives_saved or 0 }}</div>
@@ -93,7 +111,7 @@
                 <div class="row mb-2">
                     <div class="col-sm-4 fw-bold">Резултат</div>
                     <div class="col-sm-8">
-                        <span class="badge {% if incident.outcome == 'success' %}bg-success{% elif incident.outcome == 'partial' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                        <span class="badge {% if incident.outcome == 'success' %}bg-success{% elif incident.outcome == 'partial' %}bg-warning text-dark{% elif incident.outcome == 'false_alarm' %}bg-danger{% else %}bg-danger{% endif %}">
                             {{ incident.get_outcome_display() }}
                         </span>
                     </div>

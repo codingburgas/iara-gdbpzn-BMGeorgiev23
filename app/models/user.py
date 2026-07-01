@@ -12,10 +12,15 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     
-    # Role: admin, incident_manager, dispatcher, firefighter, user
+    # Role
     role = db.Column(db.String(50), default='user')
     
-    # Ban fields
+    # Profile fields
+    address = db.Column(db.String(300), nullable=True)
+    phone_number = db.Column(db.String(20), nullable=True)
+    profile_picture = db.Column(db.String(500), nullable=True)  # path to uploaded image
+    
+    # Ban fields (kept for compatibility, but ban functionality removed)
     is_banned = db.Column(db.Boolean, default=False)
     ban_reason = db.Column(db.Text, nullable=True)
     banned_at = db.Column(db.DateTime, nullable=True)
@@ -28,13 +33,11 @@ class User(UserMixin, db.Model):
     team = db.relationship('Team', back_populates='members', foreign_keys=[team_id])
     banned_by = db.relationship('User', remote_side=[id], foreign_keys=[banned_by_id])
     
-    # Warnings relationship
     warnings = db.relationship('Warning', foreign_keys='Warning.user_id', backref='user', lazy=True, cascade='all, delete-orphan')
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Role definitions
     ROLES = {
         'admin': 'Администратор',
         'incident_manager': 'Мениджър произшествия',
@@ -68,13 +71,16 @@ class User(UserMixin, db.Model):
         return self.role == 'user'
     
     def is_staff(self):
-        """Check if user is any staff role (not a regular user)"""
         return self.role in ['admin', 'incident_manager', 'dispatcher', 'firefighter']
     
     def has_permission(self, permission):
-        """Check if user has a specific permission"""
         from app.utils.permissions import has_permission
         return has_permission(self, permission)
+    
+    def get_profile_picture_url(self):
+        if self.profile_picture:
+            return url_for('static', filename='uploads/' + self.profile_picture)
+        return None
     
     def __repr__(self):
         return f'<User {self.email}>'

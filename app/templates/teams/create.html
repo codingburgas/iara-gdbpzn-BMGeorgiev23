@@ -14,7 +14,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST">
+                <form method="POST" id="teamForm">
                     <div class="mb-3">
                         <label for="name" class="form-label">Име на екипа <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="name" name="name" required placeholder="Напр. Екип 'Орел'">
@@ -26,13 +26,27 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="members" class="form-label">Добави членове</label>
-                        <select class="form-select" id="members" name="members" multiple size="5">
-                            {% for user in available_members %}
-                            <option value="{{ user.id }}">{{ user.name }} ({{ user.get_role_display() }})</option>
-                            {% endfor %}
-                        </select>
-                        <small class="text-muted">Задръжте Ctrl (или Cmd) за да изберете няколко потребители.</small>
+                        <label class="form-label">Добави членове</label>
+                        <div class="input-group">
+                            <select class="form-select" id="member-select">
+                                <option value="">Изберете пожарникар...</option>
+                                {% for user in available_members %}
+                                    <option value="{{ user.id }}">{{ user.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-danger" type="button" id="add-member-btn">
+                                <i class="fas fa-plus"></i> Добави
+                            </button>
+                        </div>
+                        <small class="text-muted">Само пожарникари без назначен екип се показват.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Избрани членове</label>
+                        <div id="selected-members" class="d-flex flex-wrap gap-2">
+                            <!-- Selected members will appear here -->
+                        </div>
+                        <input type="hidden" id="members-input" name="members" value="">
                     </div>
                     
                     <button type="submit" class="btn btn-danger">
@@ -61,4 +75,68 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectedMembers = [];
+        var memberSelect = document.getElementById('member-select');
+        var addBtn = document.getElementById('add-member-btn');
+        var selectedContainer = document.getElementById('selected-members');
+        var membersInput = document.getElementById('members-input');
+        
+        // Update hidden input with selected member IDs
+        function updateHiddenInput() {
+            membersInput.value = selectedMembers.join(',');
+        }
+        
+        // Render selected members
+        function renderSelectedMembers() {
+            selectedContainer.innerHTML = '';
+            selectedMembers.forEach(function(id) {
+                var name = memberSelect.querySelector('option[value="' + id + '"]').text;
+                var badge = document.createElement('span');
+                badge.className = 'badge bg-primary d-inline-flex align-items-center gap-1 p-2';
+                badge.innerHTML = name + ' <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem;" data-member-id="' + id + '"></button>';
+                selectedContainer.appendChild(badge);
+            });
+            
+            // Add remove event listeners
+            selectedContainer.querySelectorAll('.btn-close').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = parseInt(this.dataset.memberId);
+                    selectedMembers = selectedMembers.filter(function(m) { return m !== id; });
+                    renderSelectedMembers();
+                    updateHiddenInput();
+                });
+            });
+            
+            updateHiddenInput();
+        }
+        
+        // Add member
+        addBtn.addEventListener('click', function() {
+            var id = parseInt(memberSelect.value);
+            if (!id) {
+                alert('Моля, изберете пожарникар.');
+                return;
+            }
+            if (selectedMembers.includes(id)) {
+                alert('Този пожарникар вече е добавен.');
+                return;
+            }
+            selectedMembers.push(id);
+            renderSelectedMembers();
+        });
+        
+        // Allow pressing Enter to add
+        memberSelect.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addBtn.click();
+            }
+        });
+    });
+</script>
 {% endblock %}

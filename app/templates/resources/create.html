@@ -22,11 +22,9 @@
                     
                     <div class="mb-3">
                         <label for="category" class="form-label">Категория <span class="text-danger">*</span></label>
-                        <select class="form-select" id="category" name="category" required>
+                        <select class="form-select" id="category" name="category" required onchange="toggleDescriptionRequired()">
                             <option value="vehicle">Превозно средство</option>
                             <option value="equipment">Оборудване</option>
-                            <option value="water">Вода</option>
-                            <option value="fuel">Гориво</option>
                             <option value="other">Друго</option>
                         </select>
                     </div>
@@ -34,11 +32,6 @@
                     <div class="mb-3">
                         <label for="quantity" class="form-label">Количество</label>
                         <input type="number" class="form-control" id="quantity" name="quantity" value="0" min="0">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="unit" class="form-label">Мерна единица</label>
-                        <input type="text" class="form-control" id="unit" name="unit" value="бр.">
                     </div>
                     
                     <div class="mb-3">
@@ -52,12 +45,17 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="location" class="form-label">Местоположение</label>
-                        <input type="text" class="form-control" id="location" name="location" placeholder="Склад София, ул. Примерна 1">
+                        <label for="station_id" class="form-label">Станция <span class="text-danger">*</span></label>
+                        <select class="form-select" id="station_id" name="station_id" required>
+                            <option value="">Изберете станция...</option>
+                            <option value="1">София</option>
+                            <option value="2">Пловдив</option>
+                            <option value="3">Варна</option>
+                        </select>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="description" class="form-label">Описание</label>
+                        <label for="description" class="form-label">Описание <span id="desc-required" class="text-danger" style="display:none;">*</span></label>
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
                     
@@ -76,14 +74,31 @@
                 <i class="fas fa-info-circle"></i> Информация
             </div>
             <div class="card-body">
-                <p class="text-muted small">Попълнете информацията за новия ресурс.</p>
                 <ul class="list-unstyled small text-muted">
-                    <li><i class="fas fa-check-circle text-success"></i> Името трябва да е описателно</li>
-                    <li><i class="fas fa-check-circle text-success"></i> Изберете правилна категория</li>
-                    <li><i class="fas fa-check-circle text-success"></i> Посочете точно количество</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Мерната единица се определя автоматично</li>
+                    <li><i class="fas fa-check-circle text-success"></i> При "Друго", описанието е задължително</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Изберете станция за ресурса</li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleDescriptionRequired() {
+        var category = document.getElementById('category').value;
+        var desc = document.getElementById('description');
+        var descRequired = document.getElementById('desc-required');
+        
+        if (category === 'other') {
+            desc.required = true;
+            descRequired.style.display = 'inline';
+        } else {
+            desc.required = false;
+            descRequired.style.display = 'none';
+        }
+    }
+</script>
 {% endblock %}

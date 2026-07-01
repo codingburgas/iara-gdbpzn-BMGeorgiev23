@@ -169,15 +169,16 @@
             <form method="POST" action="{{ url_for('teams.add_member', team_id=team.id) }}">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="user_id" class="form-label">Изберете служител</label>
+                        <label for="user_id" class="form-label">Изберете пожарникар</label>
                         <select class="form-select" id="user_id" name="user_id" required>
                             <option value="">Изберете...</option>
                             {% for user in users %}
-                                {% if not user.team_id or user.team_id == team.id %}
-                                    <option value="{{ user.id }}">{{ user.name }} ({{ user.get_role_display() }})</option>
+                                {% if user.role == 'firefighter' and not user.team_id %}
+                                    <option value="{{ user.id }}">{{ user.name }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>
+                        <small class="text-muted">Само пожарникари без назначен екип се показват.</small>
                     </div>
                 </div>
                 <div class="modal-footer">

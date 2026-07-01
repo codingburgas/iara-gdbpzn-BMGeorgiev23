@@ -14,7 +14,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST">
+                <form method="POST" id="teamForm">
                     <div class="mb-3">
                         <label for="name" class="form-label">Име на екипа <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="name" name="name" value="{{ team.name }}" required>
@@ -26,17 +26,36 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="members" class="form-label">Членове на екипа</label>
-                        <select class="form-select" id="members" name="members" multiple size="6">
+                        <label class="form-label">Добави членове</label>
+                        <div class="input-group">
+                            <select class="form-select" id="member-select">
+                                <option value="">Изберете пожарникар...</option>
+                                {% for user in all_firefighters %}
+                                    {% if user.id not in current_member_ids %}
+                                        <option value="{{ user.id }}">{{ user.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            <button class="btn btn-danger" type="button" id="add-member-btn">
+                                <i class="fas fa-plus"></i> Добави
+                            </button>
+                        </div>
+                        <small class="text-muted">Само пожарникари без назначен екип се показват.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Членове на екипа</label>
+                        <div id="selected-members" class="d-flex flex-wrap gap-2">
                             {% for user in all_firefighters %}
-                                <option value="{{ user.id }}" {% if user.id in current_member_ids %}selected{% endif %}>
-                                    {{ user.name }} ({{ user.get_role_display() }}) {% if user.team_id and user.team_id != team.id %} - В друг екип{% endif %}
-                                </option>
+                                {% if user.id in current_member_ids %}
+                                    <span class="badge bg-primary d-inline-flex align-items-center gap-1 p-2" data-member-id="{{ user.id }}">
+                                        {{ user.name }}
+                                        <button type="button" class="btn-close btn-close-white remove-member" style="font-size: 0.6rem;" data-member-id="{{ user.id }}"></button>
+                                    </span>
+                                {% endif %}
                             {% endfor %}
-                        </select>
-                        <small class="text-muted">Задръжте Ctrl (или Cmd) за да изберете няколко потребители.</small>
-                        <br>
-                        <small class="text-muted text-warning">Потребители, които са в друг екип, ще бъдат преместени.</small>
+                        </div>
+                        <input type="hidden" id="members-input" name="members" value="{{ current_member_ids|join(',') }}">
                     </div>
                     
                     <button type="submit" class="btn btn-danger">
@@ -48,4 +67,104 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectedMembers = [];
+        var memberSelect = document.getElementById('member-select');
+        var addBtn = document.getElementById('add-member-btn');
+        var selectedContainer = document.getElementById('selected-members');
+        var membersInput = document.getElementById('members-input');
+        
+        // Initialize selected members from existing
+        document.querySelectorAll('#selected-members .badge').forEach(function(badge) {
+            var id = parseInt(badge.dataset.memberId);
+            if (id) {
+                selectedMembers.push(id);
+            }
+        });
+        
+        function updateHiddenInput() {
+            membersInput.value = selectedMembers.join(',');
+        }
+        
+        function renderSelectedMembers() {
+            var currentIds = [];
+            selectedContainer.querySelectorAll('.badge').forEach(function(badge) {
+                var id = parseInt(badge.dataset.memberId);
+                if (id) currentIds.push(id);
+            });
+            
+            // Add new members that aren't already displayed
+            selectedMembers.forEach(function(id) {
+                if (!currentIds.includes(id)) {
+                    var name = memberSelect.querySelector('option[value="' + id + '"]')?.text || 'Пожарникар';
+                    var badge = document.createElement('span');
+                    badge.className = 'badge bg-primary d-inline-flex align-items-center gap-1 p-2';
+                    badge.dataset.memberId = id;
+                    badge.innerHTML = name + ' <button type="button" class="btn-close btn-close-white remove-member" style="font-size: 0.6rem;" data-member-id="' + id + '"></button>';
+                    selectedContainer.appendChild(badge);
+                }
+            });
+            
+            // Remove members that are no longer selected
+            selectedContainer.querySelectorAll('.badge').forEach(function(badge) {
+                var id = parseInt(badge.dataset.memberId);
+                if (!selectedMembers.includes(id)) {
+                    badge.remove();
+                }
+            });
+            
+            // Add remove event listeners
+            selectedContainer.querySelectorAll('.remove-member').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var id = parseInt(this.dataset.memberId);
+                    selectedMembers = selectedMembers.filter(function(m) { return m !== id; });
+                    // Re-enable the option in the dropdown
+                    var option = memberSelect.querySelector('option[value="' + id + '"]');
+                    if (option) {
+                        option.disabled = false;
+                        option.style.display = '';
+                    }
+                    renderSelectedMembers();
+                    updateHiddenInput();
+                });
+            });
+            
+            updateHiddenInput();
+        }
+        
+        // Add member
+        addBtn.addEventListener('click', function() {
+            var id = parseInt(memberSelect.value);
+            if (!id) {
+                alert('Моля, изберете пожарникар.');
+                return;
+            }
+            if (selectedMembers.includes(id)) {
+                alert('Този пожарникар вече е добавен.');
+                return;
+            }
+            selectedMembers.push(id);
+            var option = memberSelect.querySelector('option[value="' + id + '"]');
+            if (option) {
+                option.disabled = true;
+                option.style.display = 'none';
+            }
+            renderSelectedMembers();
+        });
+        
+        memberSelect.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addBtn.click();
+            }
+        });
+        
+        renderSelectedMembers();
+        updateHiddenInput();
+    });
+</script>
 {% endblock %}

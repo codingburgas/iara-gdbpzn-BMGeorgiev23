@@ -18,8 +18,32 @@ def index():
 @login_required
 @admin_required
 def users():
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('admin/users.html', title='Потребители', users=users)
+    # Get all users and group by role
+    all_users = User.query.all()
+    
+    # Group users by role
+    roles_order = ['admin', 'incident_manager', 'dispatcher', 'firefighter', 'user']
+    role_display = {
+        'admin': 'Администратори',
+        'incident_manager': 'Мениджъри произшествия',
+        'dispatcher': 'Диспечери',
+        'firefighter': 'Пожарникари',
+        'user': 'Потребители'
+    }
+    
+    grouped_users = {}
+    for role in roles_order:
+        users_in_role = [u for u in all_users if u.role == role]
+        # Sort alphabetically by name
+        grouped_users[role] = sorted(users_in_role, key=lambda u: u.name.lower())
+    
+    return render_template(
+        'admin/users.html',
+        title='Потребители',
+        grouped_users=grouped_users,
+        role_display=role_display,
+        roles_order=roles_order
+    )
 
 @admin_bp.route('/user/<int:user_id>')
 @login_required
@@ -53,69 +77,6 @@ def user_edit(user_id):
         return redirect(url_for('admin.user_detail', user_id=user.id))
     
     return render_template('admin/user_edit.html', title='Редактиране на потребител', user=user)
-
-@admin_bp.route('/user/<int:user_id>/ban', methods=['POST'])
-@login_required
-@admin_required
-def ban_user(user_id):
-    user = User.query.get_or_404(user_id)
-    
-    if user.id == current_user.id:
-        flash('Не можете да блокирате себе си.', 'danger')
-        return redirect(url_for('admin.user_detail', user_id=user.id))
-    
-    if user.is_admin():
-        flash('Не можете да блокирате администратор.', 'danger')
-        return redirect(url_for('admin.user_detail', user_id=user.id))
-    
-    reason = request.form.get('reason', 'Не е посочена причина')
-    
-    user.is_banned = True
-    user.ban_reason = reason
-    user.banned_at = datetime.utcnow()
-    user.banned_by_id = current_user.id
-    
-    db.session.commit()
-    flash(f'Потребителят {user.name} беше блокиран.', 'success')
-    return redirect(url_for('admin.user_detail', user_id=user.id))
-
-@admin_bp.route('/user/<int:user_id>/unban', methods=['POST'])
-@login_required
-@admin_required
-def unban_user(user_id):
-    user = User.query.get_or_404(user_id)
-    
-    user.is_banned = False
-    user.ban_reason = None
-    user.banned_at = None
-    user.banned_by_id = None
-    
-    db.session.commit()
-    flash(f'Потребителят {user.name} беше разблокиран.', 'success')
-    return redirect(url_for('admin.user_detail', user_id=user.id))
-
-@admin_bp.route('/user/<int:user_id>/warning', methods=['POST'])
-@login_required
-@admin_required
-def add_warning(user_id):
-    user = User.query.get_or_404(user_id)
-    reason = request.form.get('reason')
-    
-    if not reason:
-        flash('Моля, въведете причина за предупреждението.', 'danger')
-        return redirect(url_for('admin.user_detail', user_id=user.id))
-    
-    warning = Warning(
-        reason=reason,
-        user_id=user.id,
-        issued_by_id=current_user.id
-    )
-    
-    db.session.add(warning)
-    db.session.commit()
-    
-    flash(f'Предупреждение добавено за {user.name}.', 'success')
-    return redirect(url_for('admin.user_detail', user_id=user.id))
 
 @admin_bp.route('/user/<int:user_id>/delete', methods=['POST'])
 @login_required

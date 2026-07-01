@@ -19,12 +19,11 @@ def list_teams():
 @login_required
 @staff_required
 def create_team():
-    # Get all firefighters (users with role 'firefighter' or 'admin') who don't have a team
+    # Get all firefighters (users with role 'firefighter')
     available_members = User.query.filter(
-        User.role.in_(['firefighter', 'admin']),
+        User.role == 'firefighter',
         User.team_id.is_(None),
-        User.is_active == True,
-        User.is_banned == False
+        User.is_active == True
     ).all()
     
     if request.method == 'POST':
@@ -47,9 +46,8 @@ def create_team():
         )
         
         db.session.add(team)
-        db.session.flush()  # Get the team ID
+        db.session.flush()
         
-        # Add members to the team
         if member_ids:
             members = User.query.filter(User.id.in_(member_ids)).all()
             for member in members:
@@ -68,15 +66,12 @@ def create_team():
 def detail_team(team_id):
     team = Team.query.get_or_404(team_id)
     members = User.query.filter_by(team_id=team.id).all()
-    # Get active incidents for this team
     active_incidents = Incident.query.filter(
         Incident.assigned_team_id == team.id,
         Incident.status.in_(['active', 'in_progress'])
     ).all()
-    # Get all users for add member modal (excluding current members)
     users = User.query.filter(
-        User.is_active == True,
-        User.is_banned == False
+        User.is_active == True
     ).all()
     return render_template('teams/detail.html', title='Детайли на екип', team=team, members=members, active_incidents=active_incidents, users=users)
 
@@ -86,14 +81,12 @@ def detail_team(team_id):
 def edit_team(team_id):
     team = Team.query.get_or_404(team_id)
     
-    # Get all firefighters (users with role 'firefighter' or 'admin')
+    # Get all firefighters (users with role 'firefighter')
     all_firefighters = User.query.filter(
-        User.role.in_(['firefighter', 'admin']),
-        User.is_active == True,
-        User.is_banned == False
+        User.role == 'firefighter',
+        User.is_active == True
     ).all()
     
-    # Get current members
     current_members = User.query.filter_by(team_id=team.id).all()
     current_member_ids = [m.id for m in current_members]
     
@@ -104,11 +97,9 @@ def edit_team(team_id):
         
         member_ids = request.form.getlist('members')
         
-        # Remove all current members
         for member in current_members:
             member.team_id = None
         
-        # Add new members
         if member_ids:
             new_members = User.query.filter(User.id.in_(member_ids)).all()
             for member in new_members:
@@ -132,7 +123,6 @@ def edit_team(team_id):
 def delete_team(team_id):
     team = Team.query.get_or_404(team_id)
     
-    # Check if team has members
     members = User.query.filter_by(team_id=team.id).count()
     if members > 0:
         flash('Не можете да изтриете екип с назначени членове.', 'danger')
@@ -155,6 +145,10 @@ def add_member(team_id):
         return redirect(url_for('teams.detail_team', team_id=team.id))
     
     user = User.query.get_or_404(user_id)
+    
+    if user.role != 'firefighter':
+        flash('Можете да добавяте само пожарникари.', 'danger')
+        return redirect(url_for('teams.detail_team', team_id=team.id))
     
     if user.team_id:
         flash(f'{user.name} вече е в друг екип.', 'danger')

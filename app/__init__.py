@@ -42,6 +42,7 @@ def create_app(config_object='config.Config'):
     from app.blueprints.resources import resources_bp
     from app.blueprints.reports import reports_bp
     from app.blueprints.admin import admin_bp
+    from app.blueprints.profile import profile_bp
     
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -53,6 +54,7 @@ def create_app(config_object='config.Config'):
     app.register_blueprint(resources_bp, url_prefix='/resources')
     app.register_blueprint(reports_bp, url_prefix='/reports')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(profile_bp, url_prefix='/profile')
     
     @app.errorhandler(404)
     def not_found(error):
@@ -74,7 +76,7 @@ def create_app(config_object='config.Config'):
     with app.app_context():
         db.create_all()
         
-        # Seed admin user
+        # Seed ONLY admin user
         from app.models.user import User
         if not User.query.filter_by(email='admin@example.com').first():
             admin = User(
@@ -87,41 +89,17 @@ def create_app(config_object='config.Config'):
             db.session.add(admin)
             print('Admin user created: admin@example.com')
         
-        # Seed firefighter user
-        if not User.query.filter_by(email='firefighter@example.com').first():
-            firefighter = User(
-                email='firefighter@example.com',
-                name='Firefighter',
-                role='firefighter',
-                is_active=True
+        # Seed default "Общ канал"
+        from app.models.channel import Channel
+        if not Channel.query.filter_by(name='Общ канал').first():
+            default_channel = Channel(
+                name='Общ канал',
+                description='Основен канал за всички служители',
+                channel_type='general',
+                created_by_id=User.query.filter_by(email='admin@example.com').first().id
             )
-            firefighter.set_password('fire123')
-            db.session.add(firefighter)
-            print('Firefighter user created: firefighter@example.com')
-        
-        # Seed dispatcher user
-        if not User.query.filter_by(email='dispatcher@example.com').first():
-            dispatcher = User(
-                email='dispatcher@example.com',
-                name='Dispatcher',
-                role='dispatcher',
-                is_active=True
-            )
-            dispatcher.set_password('disp123')
-            db.session.add(dispatcher)
-            print('Dispatcher user created: dispatcher@example.com')
-        
-        # Seed incident manager user
-        if not User.query.filter_by(email='manager@example.com').first():
-            manager = User(
-                email='manager@example.com',
-                name='Incident Manager',
-                role='incident_manager',
-                is_active=True
-            )
-            manager.set_password('man123')
-            db.session.add(manager)
-            print('Incident Manager user created: manager@example.com')
+            db.session.add(default_channel)
+            print('Default channel created: Общ канал')
         
         db.session.commit()
     

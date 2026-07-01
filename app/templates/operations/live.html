@@ -9,6 +9,61 @@
         height: 500px;
         border-radius: 0.375rem;
     }
+
+    .incident-status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .incident-status-badge.awaiting {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .incident-status-badge.active {
+        background: #dc3545;
+        color: white;
+    }
+
+    .popup-team-assign {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .popup-team-assign select {
+        width: 100%;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #ced4da;
+        font-size: 0.875rem;
+    }
+
+    .popup-team-assign button {
+        margin-top: 0.25rem;
+        width: 100%;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .popup-attachment {
+        margin-top: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        background: #f8f9fa;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .popup-attachment a {
+        color: #dc3545;
+        text-decoration: none;
+    }
+
+    .popup-attachment a:hover {
+        text-decoration: underline;
+    }
 </style>
 {% endblock %}
 
@@ -41,23 +96,67 @@
 
     <!-- Sidebar -->
     <div class="col-lg-4 mb-4">
+        <!-- Awaiting Assignment Incidents -->
+        <div class="card mb-3">
+            <div class="card-header bg-warning text-dark">
+                <i class="fas fa-clock"></i> Очакващи назначаване
+                <span class="badge bg-dark text-white ms-2">{{ awaiting_incidents|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for incident in awaiting_incidents %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-secondary me-1">{{ incident.get_type_display() }}</span>
+                                <span class="fw-bold">{{ incident.title }}</span>
+                            </div>
+                            <span class="incident-status-badge awaiting">Очаква</span>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-map-marker-alt"></i> {{ incident.address }}
+                        </small>
+                        {% if current_user.is_admin() or current_user.is_incident_manager() or current_user.is_dispatcher() %}
+                        <div class="mt-2">
+                            <select class="form-select form-select-sm assign-team-select" data-incident-id="{{ incident.id }}">
+                                <option value="">Назначи екип...</option>
+                                {% for team in available_teams %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-center text-muted py-3">
+                        <i class="fas fa-check-circle text-success"></i> Няма произшествия в очакване
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Active Incidents -->
         <div class="card mb-3">
             <div class="card-header bg-danger text-white">
                 <i class="fas fa-fire"></i> Активни произшествия
+                <span class="badge bg-light text-dark ms-2">{{ active_incidents|length }}</span>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    {% for incident in incidents %}
+                    {% for incident in active_incidents %}
                     <div class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="badge bg-danger me-1">{{ incident.get_type_display() }}</span>
                                 <span class="fw-bold">{{ incident.title }}</span>
                             </div>
-                            <span class="badge bg-warning text-dark">{{ incident.get_status_display() }}</span>
+                            <span class="incident-status-badge active">Активен</span>
                         </div>
                         <small class="text-muted d-block mt-1">
+                            <i class="fas fa-users"></i> {{ incident.assigned_team.name if incident.assigned_team else 'Без екип' }}
+                        </small>
+                        <small class="text-muted d-block">
                             <i class="fas fa-map-marker-alt"></i> {{ incident.address }}
                         </small>
                     </div>
@@ -77,7 +176,7 @@
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    {% for team in teams %}
+                    {% for team in available_teams %}
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <i class="fas fa-user-circle me-1"></i>
@@ -104,7 +203,15 @@
         <div class="card bg-danger text-white">
             <div class="card-body">
                 <h5 class="card-title">Активни</h5>
-                <h2 class="display-6">{{ incidents|length }}</h2>
+                <h2 class="display-6">{{ active_incidents|length }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">Очакващи</h5>
+                <h2 class="display-6">{{ awaiting_incidents|length }}</h2>
             </div>
         </div>
     </div>
@@ -112,15 +219,7 @@
         <div class="card bg-success text-white">
             <div class="card-body">
                 <h5 class="card-title">Екипи на линия</h5>
-                <h2 class="display-6">{{ teams|length }}</h2>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6 mb-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <h5 class="card-title">В процес</h5>
-                <h2 class="display-6">{{ incidents|selectattr('status', 'equalto', 'in_progress')|list|length }}</h2>
+                <h2 class="display-6">{{ available_teams|length }}</h2>
             </div>
         </div>
     </div>
@@ -128,24 +227,47 @@
         <div class="card bg-info text-white">
             <div class="card-body">
                 <h5 class="card-title">Общо днес</h5>
-                <h2 class="display-6">{{ incidents|length }}</h2>
+                <h2 class="display-6">{{ active_incidents|length + awaiting_incidents|length }}</h2>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Incident data for the map, kept out of the JS block entirely -->
+<!-- Permission flag for map popups, kept out of the JS block -->
+<span id="user-flags"
+      data-can-assign="{{ (current_user.is_admin() or current_user.is_incident_manager() or current_user.is_dispatcher())|tojson }}"
+      style="display:none;"></span>
+
+<!-- Incident data for the map -->
 <script id="incidents-data" type="application/json">
 [
-{% for incident in incidents %}
+{% for incident in all_incidents %}
 {
     "id": {{ incident.id }},
     "title": {{ incident.title|tojson }},
+    "description": {{ incident.description|tojson }},
     "address": {{ incident.address|tojson }},
     "lat": {{ (incident.latitude if incident.latitude is not none else 0)|tojson }},
     "lng": {{ (incident.longitude if incident.longitude is not none else 0)|tojson }},
     "priority": {{ incident.priority|tojson }},
-    "status": {{ incident.status|tojson }}
+    "status": {{ incident.status|tojson }},
+    "assigned_team_id": {{ incident.assigned_team_id|tojson }},
+    "assigned_team_name": {{ (incident.assigned_team.name if incident.assigned_team else none)|tojson }},
+    "attachment_filename": {{ incident.attachment_filename|tojson }},
+    "attachment_path": {{ incident.attachment_path|tojson }},
+    "is_awaiting": {{ (incident.status == 'awaiting_assignment')|tojson }}
+}{% if not loop.last %},{% endif %}
+{% endfor %}
+]
+</script>
+
+<!-- Teams data for assign dropdown -->
+<script id="teams-data" type="application/json">
+[
+{% for team in available_teams %}
+{
+    "id": {{ team.id }},
+    "name": {{ team.name|tojson }}
 }{% if not loop.last %},{% endif %}
 {% endfor %}
 ]
@@ -163,42 +285,139 @@
             attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
-        // Get incident data from the embedded JSON island (no Jinja in this block)
+        // Get incident/team data and the assign-permission flag
         var incidents = JSON.parse(document.getElementById('incidents-data').textContent);
+        var teams = JSON.parse(document.getElementById('teams-data').textContent);
+        var canAssignTeams = document.getElementById('user-flags').dataset.canAssign === 'true';
 
         var colorMap = {
             critical: '#dc3545',
             high: '#fd7e14',
-            medium: '#ffc107'
+            medium: '#ffc107',
+            low: '#28a745'
         };
 
         // Add markers for each incident
-        incidents.forEach(function (incident) {
+        incidents.forEach(function(incident) {
             if (incident.lat && incident.lng) {
                 var color = colorMap[incident.priority] || '#28a745';
 
-                var marker = L.circleMarker([incident.lat, incident.lng], {
-                    radius: 14,
+                // Different marker style for awaiting vs active
+                var markerOptions = {
+                    radius: incident.is_awaiting ? 10 : 14,
                     fillColor: color,
                     color: '#fff',
                     weight: 2,
                     opacity: 1,
-                    fillOpacity: 0.8
-                }).addTo(map);
+                    fillOpacity: incident.is_awaiting ? 0.5 : 0.8
+                };
 
-                marker.bindPopup(
-                    '<b>' + incident.title + '</b><br>' +
-                    incident.address + '<br>' +
-                    '<span class="badge bg-danger">' + incident.priority + '</span> ' +
-                    '<span class="badge bg-warning text-dark">' + incident.status + '</span>'
-                );
+                var marker = L.circleMarker([incident.lat, incident.lng], markerOptions).addTo(map);
+
+                // Build popup content
+                var popupContent = '<div style="min-width: 200px;">';
+                popupContent += '<b>' + incident.title + '</b><br>';
+                popupContent += '<span class="badge ' + (incident.is_awaiting ? 'bg-warning text-dark' : 'bg-danger') + '">' +
+                    (incident.is_awaiting ? 'Очаква назначаване' : 'Активен') + '</span><br>';
+                popupContent += '<span class="text-muted small">' + incident.address + '</span><br>';
+
+                if (incident.description) {
+                    popupContent += '<p class="mt-1 mb-1 small">' + incident.description + '</p>';
+                }
+
+                if (incident.attachment_filename) {
+                    popupContent += '<div class="popup-attachment">';
+                    popupContent += '<i class="fas fa-paperclip"></i> <a href="' + incident.attachment_path + '" target="_blank">' + incident.attachment_filename + '</a>';
+                    popupContent += '</div>';
+                }
+
+                // Show assigned team if active
+                if (!incident.is_awaiting && incident.assigned_team_name) {
+                    popupContent += '<div class="mt-1"><strong>Екип:</strong> ' + incident.assigned_team_name + '</div>';
+                }
+
+                // Assign team dropdown (only for Admins/Incident Managers/Dispatchers)
+                if (canAssignTeams && incident.is_awaiting) {
+                    popupContent += '<div class="popup-team-assign">';
+                    popupContent += '<select class="form-select form-select-sm map-assign-select" data-incident-id="' + incident.id + '">';
+                    popupContent += '<option value="">Назначи екип...</option>';
+                    teams.forEach(function(team) {
+                        popupContent += '<option value="' + team.id + '">' + team.name + '</option>';
+                    });
+                    popupContent += '</select>';
+                    popupContent += '<button class="btn btn-sm btn-danger map-assign-btn" data-incident-id="' + incident.id + '">Назначи</button>';
+                    popupContent += '</div>';
+                }
+
+                popupContent += '</div>';
+
+                marker.bindPopup(popupContent);
             }
         });
 
-        // Auto-refresh every 30 seconds
-        setInterval(function () {
+        // Handle assign team from map popup
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('map-assign-btn')) {
+                var incidentId = e.target.dataset.incidentId;
+                var select = document.querySelector('.map-assign-select[data-incident-id="' + incidentId + '"]');
+                var teamId = select ? select.value : null;
+
+                if (!teamId) {
+                    alert('Моля, изберете екип.');
+                    return;
+                }
+
+                fetch('/incidents/' + incidentId + '/assign-team', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ team_id: parseInt(teamId) })
+                }).then(function(response) {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Възникна грешка при назначаването на екипа.');
+                    }
+                });
+            }
+        });
+
+        // Handle assign team from sidebar
+        document.querySelectorAll('.assign-team-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                var incidentId = this.dataset.incidentId;
+                var teamId = this.value;
+
+                if (!teamId) return;
+
+                if (!confirm('Сигурни ли сте, че искате да назначите този екип?')) {
+                    this.value = '';
+                    return;
+                }
+
+                fetch('/incidents/' + incidentId + '/assign-team', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ team_id: parseInt(teamId) })
+                }).then(function(response) {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Възникна грешка при назначаването на екипа.');
+                    }
+                });
+            });
+        });
+
+        // Auto-refresh every 60 seconds
+        setInterval(function() {
             location.reload();
-        }, 30000);
+        }, 60000);
     });
 </script>
 {% endblock %}

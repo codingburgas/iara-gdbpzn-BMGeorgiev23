@@ -52,9 +52,7 @@
                 <div class="row mb-3">
                     <div class="col-sm-4 fw-bold">Статус</div>
                     <div class="col-sm-8">
-                        {% if user.is_banned %}
-                            <span class="badge bg-danger">Блокиран</span>
-                        {% elif user.is_active %}
+                        {% if user.is_active %}
                             <span class="badge bg-success">Активен</span>
                         {% else %}
                             <span class="badge bg-warning text-dark">Неактивен</span>
@@ -69,34 +67,15 @@
                     <div class="col-sm-4 fw-bold">Регистриран</div>
                     <div class="col-sm-8">{{ user.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
                 </div>
-                {% if user.is_banned %}
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Причина за блокиране</div>
-                    <div class="col-sm-8">{{ user.ban_reason or 'Не е посочена' }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Блокиран от</div>
-                    <div class="col-sm-8">{{ user.banned_by.name if user.banned_by else 'Неизвестен' }}</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Блокиран на</div>
-                    <div class="col-sm-8">{{ user.banned_at.strftime('%d.%m.%Y %H:%M') if user.banned_at else '-' }}</div>
-                </div>
-                {% endif %}
             </div>
         </div>
     </div>
     
     <div class="col-md-6">
-        <!-- Warnings -->
+        <!-- Warnings Section - Read Only -->
         <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-exclamation-triangle"></i> Предупреждения ({{ warnings|length }})</span>
-                {% if user.id != current_user.id %}
-                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#warningModal">
-                    <i class="fas fa-plus"></i> Добави
-                </button>
-                {% endif %}
+            <div class="card-header">
+                <i class="fas fa-exclamation-triangle"></i> Предупреждения ({{ warnings|length }})
             </div>
             <div class="card-body p-0">
                 {% if warnings %}
@@ -122,86 +101,21 @@
             </div>
         </div>
         
-        <!-- Actions -->
-        {% if user.id != current_user.id %}
+        <!-- Actions - Only Delete User -->
+        {% if user.id != current_user.id and not user.is_admin() %}
         <div class="card">
             <div class="card-header">
                 <i class="fas fa-cog"></i> Действия
             </div>
             <div class="card-body">
-                {% if user.is_banned %}
-                <form method="POST" action="{{ url_for('admin.unban_user', user_id=user.id) }}" class="d-inline">
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-user-check"></i> Разблокирай
-                    </button>
-                </form>
-                {% else %}
-                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#banModal">
-                    <i class="fas fa-user-slash"></i> Блокирай
-                </button>
-                {% endif %}
-                
-                {% if not user.is_admin() %}
-                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Сигурни ли сте?')">
+                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Сигурни ли сте, че искате да изтриете този потребител?')">
                     <button type="submit" class="btn btn-outline-danger">
-                        <i class="fas fa-trash"></i> Изтрий
+                        <i class="fas fa-trash"></i> Изтрий потребител
                     </button>
                 </form>
-                {% endif %}
             </div>
         </div>
         {% endif %}
-    </div>
-</div>
-
-<!-- Warning Modal -->
-<div class="modal fade" id="warningModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Добавяне на предупреждение</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{{ url_for('admin.add_warning', user_id=user.id) }}">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="reason" class="form-label">Причина</label>
-                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
-                    <button type="submit" class="btn btn-warning">Добави</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Ban Modal -->
-<div class="modal fade" id="banModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Блокиране на потребител</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{{ url_for('admin.ban_user', user_id=user.id) }}">
-                <div class="modal-body">
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i> Блокираният потребител няма да може да влиза в системата.
-                    </div>
-                    <div class="mb-3">
-                        <label for="reason" class="form-label">Причина за блокиране</label>
-                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отказ</button>
-                    <button type="submit" class="btn btn-danger">Блокирай</button>
-                </div>
-            </form>
-        </div>
     </div>
 </div>
 {% endblock %}

@@ -6,7 +6,8 @@ from app import db
 from app.models.incident import Incident
 from app.models.team import Team
 from app.models.user import User
-from app.utils.decorators import role_required, staff_required, firefighter_required
+from app.models.warning import Warning
+from app.utils.decorators import role_required, staff_required
 
 @incidents_bp.route('/')
 @login_required
@@ -34,6 +35,11 @@ def create_incident():
             flash('Заглавието и адресът са задължителни.', 'danger')
             return render_template('incidents/create.html', teams=teams)
         
+        # If type is 'other', description is required
+        if incident_type == 'other' and not description:
+            flash('При избор на "Друго", описанието е задължително.', 'danger')
+            return render_template('incidents/create.html', teams=teams)
+        
         incident = Incident(
             title=title,
             description=description,
@@ -45,6 +51,12 @@ def create_incident():
             assigned_team_id=int(assigned_team_id) if assigned_team_id and current_user.is_staff() else None,
             created_by_id=current_user.id
         )
+        
+        # If team is assigned by staff, set status to 'active', otherwise 'awaiting_assignment'
+        if incident.assigned_team_id:
+            incident.status = 'active'
+        else:
+            incident.status = 'awaiting_assignment'
         
         db.session.add(incident)
         db.session.commit()
@@ -133,6 +145,65 @@ def resolve_incident(incident_id):
     
     return render_template('incidents/partials/resolve_modal.html', incident=incident)
 
+@incidents_bp.route('/<int:incident_id>/mark-false', methods=['POST'])
+@login_required
+@role_required(['admin', 'incident_manager'])
+def mark_false_alarm(incident_id):
+    incident = Incident.query.get_or_404(incident_id)
+    
+    if incident.is_false_alarm:
+        flash('Това произшествие вече е маркирано като фалшив сигнал.', 'warning')
+        return redirect(url_for('incidents.detail_incident', incident_id=incident.id))
+    
+    # Mark as false alarm
+    incident.is_false_alarm = True
+    incident.outcome = 'false_alarm'
+    incident.status = 'resolved'
+    incident.resolved_at = datetime.utcnow()
+    incident.resolved_by_id = current_user.id
+    incident.false_alarm_marked_by_id = current_user.id
+    incident.false_alarm_marked_at = datetime.utcnow()
+    
+    # Create warning for the user who created the incident
+    warning = Warning(
+        reason=f'Фалшив сигнал за произшествие #{incident.id} - "{incident.title}". Подаването на неверни сигнали е нарушение на Условията за ползване.',
+        user_id=incident.created_by_id,
+        issued_by_id=current_user.id
+    )
+    db.session.add(warning)
+    
+    db.session.commit()
+    
+    flash(f'Произшествието е маркирано като фалшив сигнал. Потребителят {incident.created_by.name} получи предупреждение.', 'success')
+    return redirect(url_for('incidents.detail_incident', incident_id=incident.id))
+
+@incidents_bp.route('/<int:incident_id>/assign-team', methods=['POST'])
+@login_required
+@role_required(['admin', 'incident_manager', 'dispatcher'])
+def assign_team(incident_id):
+    incident = Incident.query.get_or_404(incident_id)
+    data = request.json
+    team_id = data.get('team_id')
+    
+    if not team_id:
+        return jsonify({'error': 'Team ID required'}), 400
+    
+    team = Team.query.get(team_id)
+    if not team:
+        return jsonify({'error': 'Team not found'}), 404
+    
+    # Check if team is available
+    if team.get_status() != 'available':
+        return jsonify({'error': 'Team is not available'}), 400
+    
+    incident.assigned_team_id = team_id
+    incident.status = 'active'
+    incident.updated_at = datetime.utcnow()
+    
+    db.session.commit()
+    
+    return jsonify({'success': True, 'team_name': team.name})
+
 @incidents_bp.route('/api/data')
 @login_required
 @staff_required
@@ -151,7 +222,8 @@ def api_incidents_data():
             'assigned_team': incident.assigned_team.name if incident.assigned_team else 'Не е назначен',
             'lives_saved': incident.lives_saved or 0,
             'deaths': incident.deaths or 0,
-            'outcome': incident.get_outcome_display() if incident.outcome else '-'
+            'outcome': incident.get_outcome_display() if incident.outcome else '-',
+            'is_false_alarm': incident.is_false_alarm
         })
     return jsonify(data)
 

@@ -8,15 +8,17 @@ class Message(db.Model):
     content = db.Column(db.Text, nullable=False)
     is_template = db.Column(db.Boolean, default=False)
     template_name = db.Column(db.String(100), nullable=True)
-    is_emergency = db.Column(db.Boolean, default=False)  # NEW FIELD
+    is_emergency = db.Column(db.Boolean, default=False)
     
     incident_id = db.Column(db.Integer, db.ForeignKey('incidents.id'), nullable=True)
+    channel_id = db.Column(db.Integer, db.ForeignKey('channels.id'), nullable=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
-    incident = db.relationship('Incident', backref='messages')
+    # Relationships - use back_populates
+    incident = db.relationship('Incident', back_populates='messages')
+    channel = db.relationship('Channel', back_populates='messages')
     sender = db.relationship('User', backref='sent_messages')
     
     def __repr__(self):

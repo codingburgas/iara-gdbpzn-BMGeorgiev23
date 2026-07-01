@@ -12,12 +12,27 @@ from app.utils.decorators import staff_required, role_required
 @login_required
 @staff_required
 def live():
-    incidents = Incident.query.filter(Incident.status.in_(['active', 'in_progress'])).all()
-    # Get all teams, filter in Python using the property
+    # Get all incidents
+    all_incidents = Incident.query.all()
+    
+    # Split into awaiting and active
+    awaiting_incidents = [i for i in all_incidents if i.status == 'awaiting_assignment']
+    active_incidents = [i for i in all_incidents if i.status in ['active', 'in_progress']]
+    
+    # Get available teams (those with status 'available')
     all_teams = Team.query.all()
-    teams = [team for team in all_teams if team.get_status() == 'available']
+    available_teams = [team for team in all_teams if team.get_status() == 'available']
+    
     now = datetime.now()
-    return render_template('operations/live.html', title='Оперативен център', incidents=incidents, teams=teams, now=now)
+    return render_template(
+        'operations/live.html',
+        title='Оперативен център',
+        all_incidents=all_incidents,
+        awaiting_incidents=awaiting_incidents,
+        active_incidents=active_incidents,
+        available_teams=available_teams,
+        now=now
+    )
 
 @operations_bp.route('/tasks')
 @login_required
@@ -50,7 +65,11 @@ def api_incidents():
             'latitude': incident.latitude,
             'longitude': incident.longitude,
             'address': incident.address,
-            'created_at': incident.created_at.isoformat()
+            'created_at': incident.created_at.isoformat(),
+            'assigned_team_id': incident.assigned_team_id,
+            'assigned_team_name': incident.assigned_team.name if incident.assigned_team else None,
+            'attachment_filename': incident.attachment_filename,
+            'attachment_path': incident.attachment_path
         })
     return jsonify(data)
 

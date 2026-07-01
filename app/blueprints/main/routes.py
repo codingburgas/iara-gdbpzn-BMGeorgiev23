@@ -6,11 +6,9 @@ from app.models.incident import Incident
 @main_bp.route('/')
 def index():
     if current_user.is_authenticated:
-        # Redirect based on role
         if current_user.is_admin() or current_user.is_firefighter():
             return redirect(url_for('dashboard.index'))
         else:
-            # Regular users get their own dashboard
             return redirect(url_for('main.user_dashboard'))
     return render_template('main/index.html', title='Начало')
 
@@ -38,3 +36,7 @@ def my_reports():
 def user_dashboard():
     incidents = Incident.query.filter_by(created_by_id=current_user.id).order_by(Incident.created_at.desc()).all()
     return render_template('main/user_dashboard.html', title='Моят профил', incidents=incidents)
+
+@main_bp.route('/terms')
+def terms():
+    return render_template('main/terms.html', title='Условия за ползване')

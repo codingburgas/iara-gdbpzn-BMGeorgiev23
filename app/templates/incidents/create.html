@@ -21,6 +21,44 @@
 {% endblock %}
 
 {% block content %}
+<!-- False Alarm Warning Modal (only for normal users) -->
+{% if current_user.is_regular_user() %}
+<div class="modal fade" id="warningModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Внимание!
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+                </div>
+                <div class="alert alert-danger">
+                    <strong>Подаването на неверни сигнали е незаконно!</strong>
+                </div>
+                <p class="text-muted">
+                    Подаването на фалшиви сигнали за произшествия води до:
+                </p>
+                <ul class="text-muted">
+                    <li><strong>Предупреждение</strong> за първо нарушение</li>
+                    <li><strong>Предаване на случая на органите на реда</strong> при повторно нарушение</li>
+                </ul>
+                <p class="text-muted small mt-3">
+                    Моля, уверете се, че информацията, която предоставяте, е точна и вярна.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="acceptWarning">
+                    <i class="fas fa-check"></i> Разбрах, продължи
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
     <div class="col-12">
         <h1 class="display-6 fw-bold">Ново произшествие</h1>
@@ -32,21 +70,21 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" id="incidentForm">
+                <form method="POST" id="incidentForm" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="title" class="form-label">Заглавие <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="title" name="title" required>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="type" class="form-label">Тип</label>
-                        <select class="form-select" id="type" name="type">
+                        <select class="form-select" id="type" name="type" onchange="toggleDescriptionRequired()">
                             <option value="fire">Пожар</option>
                             <option value="rescue">Спасителна операция</option>
                             <option value="other">Друго</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="priority" class="form-label">Приоритет</label>
                         <select class="form-select" id="priority" name="priority">
@@ -56,12 +94,12 @@
                             <option value="low">Нисък</option>
                         </select>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="address" class="form-label">Адрес <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="address" name="address" placeholder="ул. Примерна 123, София" required>
                     </div>
-                    
+
                     <!-- Map Location Picker -->
                     <div class="mb-3">
                         <label class="form-label">Посочете местоположение на картата</label>
@@ -73,7 +111,9 @@
                         <input type="hidden" id="latitude" name="latitude" value="">
                         <input type="hidden" id="longitude" name="longitude" value="">
                     </div>
-                    
+
+                    <!-- Team Assignment (only for staff) -->
+                    {% if current_user.is_staff() %}
                     <div class="mb-3">
                         <label for="assigned_team_id" class="form-label">Назначен екип</label>
                         <select class="form-select" id="assigned_team_id" name="assigned_team_id">
@@ -83,12 +123,21 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
+                    {% endif %}
+
+                    <!-- Description -->
                     <div class="mb-3">
-                        <label for="description" class="form-label">Описание</label>
+                        <label for="description" class="form-label">Описание <span id="desc-required" class="text-danger" style="display:none;">*</span></label>
                         <textarea class="form-control" id="description" name="description" rows="4"></textarea>
                     </div>
-                    
+
+                    <!-- File Attachment -->
+                    <div class="mb-3">
+                        <label for="attachment" class="form-label">Прикачен файл / Снимка</label>
+                        <input type="file" class="form-control" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx">
+                        <small class="text-muted">Можете да прикачите снимка или документ към произшествието.</small>
+                    </div>
+
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-save"></i> Създай
                     </button>
@@ -97,7 +146,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
@@ -110,47 +159,64 @@
                     <li><i class="fas fa-check-circle text-success"></i> Посочете точен адрес</li>
                     <li><i class="fas fa-check-circle text-success"></i> Изберете правилен приоритет</li>
                     <li><i class="fas fa-check-circle text-success"></i> Посочете местоположение на картата</li>
-                    <li><i class="fas fa-check-circle text-success"></i> Детайлите се попълват при разрешаване</li>
+                    <li><i class="fas fa-check-circle text-success"></i> При "Друго" тип, описание е задължително</li>
+                    {% if current_user.is_staff() %}
+                    <li><i class="fas fa-check-circle text-success"></i> Можете да назначите екип</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Flag consumed by plain JS below, avoids mixing {% if %} into the script block -->
+<span id="user-flags" data-is-regular-user="{{ current_user.is_regular_user()|tojson }}" style="display:none;"></span>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Show warning modal for normal users
+        var isRegularUser = document.getElementById('user-flags').dataset.isRegularUser === 'true';
+
+        if (isRegularUser) {
+            var warningModal = new bootstrap.Modal(document.getElementById('warningModal'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            warningModal.show();
+
+            document.getElementById('acceptWarning').addEventListener('click', function() {
+                warningModal.hide();
+            });
+        }
+
         // Initialize map centered on Bulgaria
         var map = L.map('location-map').setView([42.6977, 23.3219], 12);
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
-        
+
         var marker = null;
-        
+
         // Click on map to set location
         map.on('click', function(e) {
             var lat = e.latlng.lat.toFixed(6);
             var lng = e.latlng.lng.toFixed(6);
-            
-            // Update hidden fields
+
             document.getElementById('latitude').value = lat;
             document.getElementById('longitude').value = lng;
-            
-            // Update display
             document.getElementById('coord-display').textContent = lat + ', ' + lng;
-            
-            // Add or move marker
+
             if (marker) {
                 marker.setLatLng(e.latlng);
             } else {
                 marker = L.marker(e.latlng).addTo(map);
             }
         });
-        
+
         // Try to get user's location
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(pos) {
@@ -170,5 +236,19 @@
             });
         }
     });
+
+    function toggleDescriptionRequired() {
+        var type = document.getElementById('type').value;
+        var desc = document.getElementById('description');
+        var descRequired = document.getElementById('desc-required');
+
+        if (type === 'other') {
+            desc.required = true;
+            descRequired.style.display = 'inline';
+        } else {
+            desc.required = false;
+            descRequired.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}

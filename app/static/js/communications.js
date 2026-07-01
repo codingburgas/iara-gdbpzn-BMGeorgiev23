@@ -10,9 +10,6 @@ function initializeChat() {
     var sendBtn = document.getElementById('send-btn');
     var messageInput = document.getElementById('message-input');
     var chatMessages = document.getElementById('chat-messages');
-    var templateBtn = document.getElementById('template-btn');
-    var templateDropdown = document.getElementById('template-dropdown');
-    var templateSelect = document.getElementById('template-select');
     
     // Emergency elements
     var emergencyBtn = document.getElementById('emergency-btn');
@@ -21,18 +18,32 @@ function initializeChat() {
     var emergencySendBtn = document.getElementById('emergency-send-btn');
     var emergencyCancelBtn = document.getElementById('emergency-cancel-btn');
     
-    // Flag to prevent double sending
     var isSending = false;
+    
+    // Get current channel ID
+    function getActiveChannelId() {
+        var activeItem = document.querySelector('.channel-link.active');
+        if (activeItem) {
+            return activeItem.dataset.channelId;
+        }
+        return null;
+    }
+    
+    function getChannelName() {
+        var activeItem = document.querySelector('.channel-link.active');
+        if (activeItem) {
+            return activeItem.textContent.trim();
+        }
+        return 'Общ канал';
+    }
     
     // Send message function
     function sendMessage(isEmergency) {
-        // Prevent double sending
         if (isSending) return;
         
-        var activeChannel = document.querySelector('.list-group-item.active');
-        var incidentId = activeChannel ? activeChannel.dataset.incidentId : 0;
-        
+        var channelId = getActiveChannelId();
         var content;
+        
         if (isEmergency) {
             content = emergencyInput.value.trim();
             if (!content) return;
@@ -43,16 +54,21 @@ function initializeChat() {
         
         isSending = true;
         
+        var payload = {
+            content: content,
+            is_emergency: isEmergency
+        };
+        
+        if (channelId) {
+            payload.channel_id = parseInt(channelId);
+        }
+        
         fetch('/communications/api/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                content: content,
-                incident_id: incidentId === '0' ? null : incidentId,
-                is_emergency: isEmergency
-            })
+            body: JSON.stringify(payload)
         }).then(function(response) {
             isSending = false;
             if (response.ok) {
@@ -62,7 +78,7 @@ function initializeChat() {
                 } else {
                     messageInput.value = '';
                 }
-                loadMessages(incidentId);
+                loadMessages(channelId);
             }
         }).catch(function() {
             isSending = false;
@@ -85,7 +101,6 @@ function initializeChat() {
     
     // --- Send Button ---
     if (sendBtn) {
-        // Remove any existing listeners by cloning
         var newSendBtn = sendBtn.cloneNode(true);
         sendBtn.parentNode.replaceChild(newSendBtn, sendBtn);
         sendBtn = document.getElementById('send-btn');
@@ -99,7 +114,6 @@ function initializeChat() {
     
     // --- Message Input (Enter key) ---
     if (messageInput) {
-        // Remove any existing listeners by cloning
         var newMessageInput = messageInput.cloneNode(true);
         messageInput.parentNode.replaceChild(newMessageInput, messageInput);
         messageInput = document.getElementById('message-input');
@@ -167,66 +181,62 @@ function initializeChat() {
         });
     }
     
-    // --- Template dropdown toggle ---
-    if (templateBtn && templateDropdown) {
-        var newTemplateBtn = templateBtn.cloneNode(true);
-        templateBtn.parentNode.replaceChild(newTemplateBtn, templateBtn);
-        templateBtn = document.getElementById('template-btn');
-        
-        templateBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            templateDropdown.style.display = templateDropdown.style.display === 'none' ? 'block' : 'none';
-        });
-    }
-    
-    // --- Template selection ---
-    if (templateSelect && messageInput) {
-        var newTemplateSelect = templateSelect.cloneNode(true);
-        templateSelect.parentNode.replaceChild(newTemplateSelect, templateSelect);
-        templateSelect = document.getElementById('template-select');
-        
-        templateSelect.addEventListener('change', function() {
-            if (this.value) {
-                messageInput.value = this.value;
-                templateDropdown.style.display = 'none';
-            }
-        });
-    }
-    
     // --- Channel selection ---
-    document.querySelectorAll('.list-group-item[data-incident-id]').forEach(function(item) {
+    document.querySelectorAll('.channel-link').forEach(function(item) {
         var newItem = item.cloneNode(true);
         item.parentNode.replaceChild(newItem, item);
         
         newItem.addEventListener('click', function(e) {
             e.preventDefault();
-            document.querySelectorAll('.list-group-item[data-incident-id]').forEach(function(el) {
+            document.querySelectorAll('.channel-link').forEach(function(el) {
                 el.classList.remove('active');
             });
             this.classList.add('active');
-            var incidentId = this.dataset.incidentId;
-            var title = this.textContent.trim();
-            document.getElementById('chat-title').innerHTML = '<i class="fas fa-comments"></i> ' + title;
-            loadMessages(incidentId);
+            
+            var channelId = this.dataset.channelId;
+            var channelType = this.dataset.channelType;
+            var name = this.textContent.trim();
+            
+            var icon = channelType === 'general' ? 'fa-hashtag' : 'fa-users';
+            document.getElementById('chat-title').innerHTML = '<i class="fas ' + icon + '"></i> ' + name;
+            
+            loadMessages(channelId);
             hideEmergencyInput();
+            
+            // Update channel info
+            var infoEl = document.getElementById('channel-detail-info');
+            if (infoEl) {
+                fetch('/communications/api/channels/' + channelId)
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        infoEl.innerHTML = '<strong>' + data.name + '</strong><br>' +
+                            'Тип: ' + data.type_display + '<br>' +
+                            'Достъп: ' + data.access_info;
+                    });
+            }
         });
     });
     
     // Load initial messages
-    loadMessages(0);
+    loadMessages(null);
 }
 
-function loadMessages(incidentId) {
+function loadMessages(channelId) {
     var chatMessages = document.getElementById('chat-messages');
     if (!chatMessages) return;
     
-    fetch('/communications/api/messages?incident_id=' + (incidentId === '0' ? '' : incidentId))
+    var url = '/communications/api/messages?';
+    if (channelId) {
+        url += 'channel_id=' + channelId;
+    }
+    
+    fetch(url)
         .then(function(response) { return response.json(); })
         .then(function(messages) {
             if (messages.length === 0) {
                 chatMessages.innerHTML = '<div class="text-center text-muted py-4">' +
                     '<i class="fas fa-comments" style="font-size: 2rem;"></i>' +
-                    '<p class="mt-2">Няма съобщения</p>' +
+                    '<p class="mt-2">Няма съобщения в този канал.</p>' +
                     '</div>';
                 return;
             }
