@@ -2,6 +2,35 @@
 
 {% block title %}Детайли на екип{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Force modal to center */
+    .modal-dialog-centered {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: calc(100% - 1rem) !important;
+    }
+    .modal-dialog-centered .modal-content {
+        margin: 0 auto !important;
+    }
+    .modal {
+        text-align: center !important;
+    }
+    .modal-dialog {
+        display: inline-block !important;
+        text-align: left !important;
+        vertical-align: middle !important;
+    }
+    .modal-backdrop {
+        z-index: 1040 !important;
+    }
+    .modal {
+        z-index: 1050 !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -158,12 +187,14 @@
     </div>
 </div>
 
-<!-- Add Member Modal -->
-<div class="modal fade" id="addMemberModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<!-- Add Member Modal - Force Centered -->
+<div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="display: flex; align-items: center; min-height: calc(100% - 1rem);">
+        <div class="modal-content" style="margin: 0 auto; width: 100%; max-width: 500px;">
             <div class="modal-header">
-                <h5 class="modal-title">Добавяне на член</h5>
+                <h5 class="modal-title" id="addMemberModalLabel">
+                    <i class="fas fa-user-plus"></i> Добавяне на член
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('teams.add_member', team_id=team.id) }}">
@@ -189,4 +220,15 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalElement = document.getElementById('addMemberModal');
+        if (modalElement) {
+            var modal = new bootstrap.Modal(modalElement);
+        }
+    });
+</script>
 {% endblock %}
