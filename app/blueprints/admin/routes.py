@@ -18,10 +18,8 @@ def index():
 @login_required
 @admin_required
 def users():
-    # Get all users and group by role
     all_users = User.query.all()
     
-    # Group users by role
     roles_order = ['admin', 'incident_manager', 'dispatcher', 'firefighter', 'user']
     role_display = {
         'admin': 'Администратори',
@@ -34,7 +32,6 @@ def users():
     grouped_users = {}
     for role in roles_order:
         users_in_role = [u for u in all_users if u.role == role]
-        # Sort alphabetically by name
         grouped_users[role] = sorted(users_in_role, key=lambda u: u.name.lower())
     
     return render_template(
@@ -68,6 +65,11 @@ def user_edit(user_id):
         user.email = request.form.get('email')
         user.role = request.form.get('role')
         user.is_active = 'is_active' in request.form
+        user.station_id = request.form.get('station_id') if request.form.get('station_id') else None
+        
+        if user.role == 'firefighter' and not user.station_id:
+            flash('Моля, изберете станция за пожарникаря.', 'danger')
+            return render_template('admin/user_edit.html', user=user)
         
         if request.form.get('password'):
             user.set_password(request.form.get('password'))
@@ -136,9 +138,14 @@ def create_user():
         name = request.form.get('name')
         password = request.form.get('password')
         role = request.form.get('role', 'user')
+        station_id = request.form.get('station_id')
         
         if User.query.filter_by(email=email).first():
             flash('Този имейл вече е регистриран.', 'danger')
+            return render_template('admin/create_user.html')
+        
+        if role == 'firefighter' and not station_id:
+            flash('Моля, изберете станция за пожарникаря.', 'danger')
             return render_template('admin/create_user.html')
         
         user = User(
@@ -147,6 +154,10 @@ def create_user():
             role=role,
             is_active=True
         )
+        
+        if role == 'firefighter' and station_id:
+            user.station_id = int(station_id)
+        
         user.set_password(password)
         
         db.session.add(user)

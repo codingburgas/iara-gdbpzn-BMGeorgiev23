@@ -42,6 +42,17 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="station_id" class="form-label">Станция</label>
+                        <select class="form-select" id="station_id" name="station_id">
+                            <option value="">Изберете станция...</option>
+                            <option value="1" {% if user.station_id == 1 %}selected{% endif %}>Център</option>
+                            <option value="2" {% if user.station_id == 2 %}selected{% endif %}>Люлин</option>
+                            <option value="3" {% if user.station_id == 3 %}selected{% endif %}>Младост</option>
+                        </select>
+                        <small class="text-muted">Само за пожарникари.</small>
+                    </div>
+                    
+                    <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
                             <label class="form-check-label" for="is_active">Активен</label>

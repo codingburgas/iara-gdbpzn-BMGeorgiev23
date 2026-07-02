@@ -50,6 +50,10 @@
                     </div>
                 </div>
                 <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Станция</div>
+                    <div class="col-sm-8">{{ user.get_station_display() }}</div>
+                </div>
+                <div class="row mb-3">
                     <div class="col-sm-4 fw-bold">Статус</div>
                     <div class="col-sm-8">
                         {% if user.is_active %}
@@ -72,7 +76,6 @@
     </div>
     
     <div class="col-md-6">
-        <!-- Warnings Section - Read Only -->
         <div class="card mb-4">
             <div class="card-header">
                 <i class="fas fa-exclamation-triangle"></i> Предупреждения ({{ warnings|length }})
@@ -101,7 +104,6 @@
             </div>
         </div>
         
-        <!-- Actions - Only Delete User -->
         {% if user.id != current_user.id and not user.is_admin() %}
         <div class="card">
             <div class="card-header">

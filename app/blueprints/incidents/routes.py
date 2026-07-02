@@ -1,6 +1,8 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from datetime import datetime
+from werkzeug.utils import secure_filename
+import os
 from . import incidents_bp
 from app import db
 from app.models.incident import Incident
@@ -35,7 +37,6 @@ def create_incident():
             flash('Заглавието и адресът са задължителни.', 'danger')
             return render_template('incidents/create.html', teams=teams)
         
-        # If type is 'other', description is required
         if incident_type == 'other' and not description:
             flash('При избор на "Друго", описанието е задължително.', 'danger')
             return render_template('incidents/create.html', teams=teams)
@@ -52,7 +53,24 @@ def create_incident():
             created_by_id=current_user.id
         )
         
-        # If team is assigned by staff, set status to 'active', otherwise 'awaiting_assignment'
+        # Handle file upload
+        if 'attachment' in request.files:
+            file = request.files['attachment']
+            if file and file.filename != '':
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else ''
+                new_filename = f'incident_{datetime.utcnow().timestamp()}.{ext}'
+                
+                upload_dir = os.path.join(current_app.root_path, 'static', 'uploads')
+                if not os.path.exists(upload_dir):
+                    os.makedirs(upload_dir)
+                
+                file_path = os.path.join(upload_dir, new_filename)
+                file.save(file_path)
+                
+                incident.attachment_filename = filename
+                incident.attachment_path = f'/static/uploads/{new_filename}'
+        
         if incident.assigned_team_id:
             incident.status = 'active'
         else:
@@ -155,7 +173,6 @@ def mark_false_alarm(incident_id):
         flash('Това произшествие вече е маркирано като фалшив сигнал.', 'warning')
         return redirect(url_for('incidents.detail_incident', incident_id=incident.id))
     
-    # Mark as false alarm
     incident.is_false_alarm = True
     incident.outcome = 'false_alarm'
     incident.status = 'resolved'
@@ -164,7 +181,6 @@ def mark_false_alarm(incident_id):
     incident.false_alarm_marked_by_id = current_user.id
     incident.false_alarm_marked_at = datetime.utcnow()
     
-    # Create warning for the user who created the incident
     warning = Warning(
         reason=f'Фалшив сигнал за произшествие #{incident.id} - "{incident.title}". Подаването на неверни сигнали е нарушение на Условията за ползване.',
         user_id=incident.created_by_id,
@@ -192,7 +208,6 @@ def assign_team(incident_id):
     if not team:
         return jsonify({'error': 'Team not found'}), 404
     
-    # Check if team is available
     if team.get_status() != 'available':
         return jsonify({'error': 'Team is not available'}), 400
     

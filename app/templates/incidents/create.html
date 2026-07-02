@@ -21,6 +21,7 @@
 {% endblock %}
 
 {% block content %}
+<!-- False Alarm Warning Modal (only for normal users) -->
 {% if current_user.is_regular_user() %}
 <div class="modal fade" id="warningModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
@@ -99,6 +100,7 @@
                         <input type="text" class="form-control" id="address" name="address" placeholder="ул. Примерна 123, София" required>
                     </div>
 
+                    <!-- Map Location Picker -->
                     <div class="mb-3">
                         <label class="form-label">Посочете местоположение на картата</label>
                         <div id="location-map"></div>
@@ -110,6 +112,7 @@
                         <input type="hidden" id="longitude" name="longitude" value="">
                     </div>
 
+                    <!-- Team Assignment (only for staff) -->
                     {% if current_user.is_staff() %}
                     <div class="mb-3">
                         <label for="assigned_team_id" class="form-label">Назначен екип</label>
@@ -122,11 +125,13 @@
                     </div>
                     {% endif %}
 
+                    <!-- Description -->
                     <div class="mb-3">
                         <label for="description" class="form-label">Описание <span id="desc-required" class="text-danger" style="display:none;">*</span></label>
                         <textarea class="form-control" id="description" name="description" rows="4"></textarea>
                     </div>
 
+                    <!-- File Attachment -->
                     <div class="mb-3">
                         <label for="attachment" class="form-label">Прикачен файл / Снимка</label>
                         <div class="d-flex flex-wrap gap-2">

@@ -1,13 +1,9 @@
-// Reports JavaScript
-let typeChart, statusChart, dailyChart, priorityChart, monthlyChart, teamChart, rateChart;
-
-// ============ OVERVIEW ============
+var typeChart, statusChart, dailyChart, priorityChart, monthlyChart, teamChart, rateChart;
 
 function loadOverviewData() {
     fetch('/reports/api/overview')
         .then(function(response) { return response.json(); })
         .then(function(data) {
-            // Update stats
             document.getElementById('total-incidents').textContent = data.total_incidents;
             document.getElementById('active-incidents').textContent = data.active_incidents;
             document.getElementById('resolved-incidents').textContent = data.resolved_incidents;
@@ -17,7 +13,6 @@ function loadOverviewData() {
                 : 0;
             document.getElementById('resolution-rate').textContent = rate + '%';
             
-            // Update recent activity
             var tbody = document.getElementById('recent-activity');
             if (data.recent.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Няма скорошна активност</td></tr>';
@@ -37,7 +32,6 @@ function loadOverviewData() {
                 tbody.innerHTML = html;
             }
             
-            // Create charts
             createOverviewCharts(data);
         })
         .catch(function(error) {
@@ -46,7 +40,6 @@ function loadOverviewData() {
 }
 
 function createOverviewCharts(data) {
-    // Type chart
     var typeCtx = document.getElementById('typeChart');
     if (typeCtx) {
         var typeLabels = [];
@@ -80,7 +73,6 @@ function createOverviewCharts(data) {
         });
     }
     
-    // Status chart
     var statusCtx = document.getElementById('statusChart');
     if (statusCtx) {
         var statusLabels = [];
@@ -116,8 +108,6 @@ function createOverviewCharts(data) {
     }
 }
 
-// ============ INCIDENT ANALYTICS ============
-
 function loadIncidentAnalytics() {
     var days = document.getElementById('days-filter').value;
     
@@ -133,7 +123,6 @@ function loadIncidentAnalytics() {
 }
 
 function createIncidentCharts(data) {
-    // Daily chart
     var dailyCtx = document.getElementById('dailyChart');
     if (dailyCtx) {
         var dates = data.daily_stats.map(function(item) { return item.date; });
@@ -168,7 +157,6 @@ function createIncidentCharts(data) {
         });
     }
     
-    // Priority chart
     var priorityCtx = document.getElementById('priorityChart');
     if (priorityCtx) {
         var priorityLabels = [];
@@ -208,7 +196,6 @@ function createIncidentCharts(data) {
         });
     }
     
-    // Monthly chart
     var monthlyCtx = document.getElementById('monthlyChart');
     if (monthlyCtx) {
         var monthLabels = data.month_stats.map(function(item) {
@@ -245,8 +232,6 @@ function createIncidentCharts(data) {
     }
 }
 
-// ============ TEAM PERFORMANCE ============
-
 function loadTeamPerformance() {
     fetch('/reports/api/team-performance')
         .then(function(response) { return response.json(); })
@@ -260,7 +245,6 @@ function loadTeamPerformance() {
 }
 
 function createTeamCharts(data) {
-    // Team chart
     var teamCtx = document.getElementById('teamChart');
     if (teamCtx) {
         var teamNames = data.teams.map(function(item) { return item.name || 'Без екип'; });
@@ -294,7 +278,6 @@ function createTeamCharts(data) {
         });
     }
     
-    // Rate chart
     var rateCtx = document.getElementById('rateChart');
     if (rateCtx) {
         var rateNames = data.teams.map(function(item) { return item.name || 'Без екип'; });
@@ -351,9 +334,9 @@ function updateTeamTable(data) {
     
     var html = '';
     data.teams.forEach(function(team) {
-        var statusBadge = team.status === 'active' ? 'success' :
+        var statusBadge = team.status === 'available' ? 'success' :
                          team.status === 'on_mission' ? 'warning text-dark' : 'secondary';
-        var statusText = team.status === 'active' ? 'Активен' :
+        var statusText = team.status === 'available' ? 'Активен' :
                         team.status === 'on_mission' ? 'На мисия' : 'Неактивен';
         
         var rateColor = team.resolution_rate >= 80 ? 'success' :
@@ -371,8 +354,6 @@ function updateTeamTable(data) {
     });
     tbody.innerHTML = html;
 }
-
-// ============ UTILITY FUNCTIONS ============
 
 function refreshData() {
     loadOverviewData();

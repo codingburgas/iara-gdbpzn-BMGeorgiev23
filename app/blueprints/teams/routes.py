@@ -19,8 +19,6 @@ def list_teams():
 @login_required
 @staff_required
 def create_team():
-    # Get all firefighters (users with role 'firefighter') who don't have a team
-    # We'll filter by station in the template
     available_members = User.query.filter(
         User.role == 'firefighter',
         User.team_id.is_(None),
@@ -58,7 +56,6 @@ def create_team():
         if member_ids:
             members = User.query.filter(User.id.in_(member_ids)).all()
             for member in members:
-                # Verify member belongs to the same station
                 if member.station_id == team.station_id:
                     member.team_id = team.id
                 else:
@@ -92,7 +89,6 @@ def detail_team(team_id):
 def edit_team(team_id):
     team = Team.query.get_or_404(team_id)
     
-    # Get all firefighters (users with role 'firefighter')
     all_firefighters = User.query.filter(
         User.role == 'firefighter',
         User.is_active == True
@@ -109,11 +105,9 @@ def edit_team(team_id):
         
         member_ids = request.form.getlist('members')
         
-        # Remove all current members
         for member in current_members:
             member.team_id = None
         
-        # Add new members (only if they match the station)
         if member_ids:
             new_members = User.query.filter(User.id.in_(member_ids)).all()
             for member in new_members:

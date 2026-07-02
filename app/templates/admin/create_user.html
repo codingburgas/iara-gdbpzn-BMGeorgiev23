@@ -32,13 +32,24 @@
                     
                     <div class="mb-3">
                         <label for="role" class="form-label">Роля <span class="text-danger">*</span></label>
-                        <select class="form-select" id="role" name="role" required>
+                        <select class="form-select" id="role" name="role" required onchange="toggleStationField()">
                             <option value="admin">Администратор</option>
                             <option value="incident_manager">Мениджър произшествия</option>
                             <option value="dispatcher">Диспечер</option>
                             <option value="firefighter">Пожарникар</option>
                             <option value="user" selected>Потребител</option>
                         </select>
+                    </div>
+                    
+                    <div class="mb-3" id="station-field" style="display: none;">
+                        <label for="station_id" class="form-label">Станция <span class="text-danger">*</span></label>
+                        <select class="form-select" id="station_id" name="station_id">
+                            <option value="">Изберете станция...</option>
+                            <option value="1">Център</option>
+                            <option value="2">Люлин</option>
+                            <option value="3">Младост</option>
+                        </select>
+                        <small class="text-muted">Само за пожарникари.</small>
                     </div>
                     
                     <button type="submit" class="btn btn-danger">
@@ -60,11 +71,29 @@
                     <li><span class="badge bg-danger">Администратор</span> – Пълен достъп + управление на потребители</li>
                     <li class="mt-2"><span class="badge bg-primary">Мениджър произшествия</span> – Управление на произшествия</li>
                     <li class="mt-2"><span class="badge bg-warning text-dark">Диспечер</span> – Създаване и назначаване на екипи</li>
-                    <li class="mt-2"><span class="badge bg-success">Пожарникар</span> – Оперативен персонал</li>
+                    <li class="mt-2"><span class="badge bg-success">Пожарникар</span> – Оперативен персонал (трябва да е назначен към станция)</li>
                     <li class="mt-2"><span class="badge bg-secondary">Потребител</span> – Само докладване</li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleStationField() {
+        var role = document.getElementById('role').value;
+        var stationField = document.getElementById('station-field');
+        var stationSelect = document.getElementById('station_id');
+        
+        if (role === 'firefighter') {
+            stationField.style.display = 'block';
+            stationSelect.required = true;
+        } else {
+            stationField.style.display = 'none';
+            stationSelect.required = false;
+        }
+    }
+</script>
 {% endblock %}

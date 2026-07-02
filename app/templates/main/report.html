@@ -2,6 +2,24 @@
 
 {% block title %}Докладвай произшествие{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #location-map {
+        height: 300px;
+        border-radius: 0.375rem;
+        cursor: crosshair;
+    }
+    #location-map .leaflet-control-attribution {
+        font-size: 8px;
+    }
+    .map-click-hint {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -15,42 +33,65 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-body">
-                <form method="POST" action="{{ url_for('incidents.create_incident') }}">
+                <form method="POST" action="{{ url_for('incidents.create_incident') }}" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="title" class="form-label">Заглавие <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="title" name="title" required>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="type" class="form-label">Тип <span class="text-danger">*</span></label>
-                        <select class="form-select" id="type" name="type" required>
+                        <label for="type" class="form-label">Тип</label>
+                        <select class="form-select" id="type" name="type" onchange="toggleDescriptionRequired()">
                             <option value="fire">Пожар</option>
                             <option value="rescue">Спасителна операция</option>
                             <option value="other">Друго</option>
                         </select>
                     </div>
-                    
+
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Приоритет</label>
+                        <select class="form-select" id="priority" name="priority">
+                            <option value="critical">Критичен</option>
+                            <option value="high">Висок</option>
+                            <option value="medium" selected>Среден</option>
+                            <option value="low">Нисък</option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
                         <label for="address" class="form-label">Адрес <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="address" name="address" required placeholder="ул. Примерна 123, София">
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="latitude" class="form-label">Географска ширина</label>
-                            <input type="text" class="form-control" id="latitude" name="latitude" placeholder="42.6977">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="longitude" class="form-label">Географска дължина</label>
-                            <input type="text" class="form-control" id="longitude" name="longitude" placeholder="23.3219">
-                        </div>
-                    </div>
-                    
+
+                    <!-- Map Location Picker -->
                     <div class="mb-3">
-                        <label for="description" class="form-label">Описание</label>
+                        <label class="form-label">Посочете местоположение на картата</label>
+                        <div id="location-map"></div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <span class="map-click-hint"><i class="fas fa-mouse-pointer"></i> Кликнете върху картата за да посочите местоположение</span>
+                            <span class="map-click-hint" id="coords-display">Избрано: <span id="coord-display">Няма избрано</span></span>
+                        </div>
+                        <input type="hidden" id="latitude" name="latitude" value="">
+                        <input type="hidden" id="longitude" name="longitude" value="">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание <span id="desc-required" class="text-danger" style="display:none;">*</span></label>
                         <textarea class="form-control" id="description" name="description" rows="4" placeholder="Опишете ситуацията..."></textarea>
                     </div>
-                    
+
+                    <!-- File Attachment -->
+                    <div class="mb-3">
+                        <label for="attachment" class="form-label">Прикачен файл / Снимка</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <input type="file" class="form-control" id="attachment" name="attachment" 
+                                   accept="image/*,.pdf,.doc,.docx" 
+                                   capture="environment">
+                            <small class="text-muted w-100">На мобилно устройство, камерата ще се отвори автоматично за снимка.</small>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-paper-plane"></i> Изпрати сигнал
                     </button>
@@ -58,21 +99,84 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-danger text-white">
-                <i class="fas fa-phone"></i> Спешни номера
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Информация
             </div>
             <div class="card-body">
-                <div class="text-center">
-                    <h2 class="display-4 text-danger">112</h2>
-                    <p class="text-muted">Спешен телефонен номер</p>
-                    <hr>
-                    <p class="small text-muted">При спешни случаи винаги се обадете на 112.</p>
-                </div>
+                <p class="text-muted small">Попълнете всички задължителни полета (маркирани с <span class="text-danger">*</span>).</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check-circle text-success"></i> Заглавието трябва да е описателно</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Посочете точен адрес</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Изберете правилен приоритет</li>
+                    <li><i class="fas fa-check-circle text-success"></i> Посочете местоположение на картата</li>
+                    <li><i class="fas fa-check-circle text-success"></i> При "Друго" тип, описание е задължително</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('location-map').setView([42.6977, 23.3219], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        var marker = null;
+
+        map.on('click', function(e) {
+            var lat = e.latlng.lat.toFixed(6);
+            var lng = e.latlng.lng.toFixed(6);
+
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            document.getElementById('coord-display').textContent = lat + ', ' + lng;
+
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng).addTo(map);
+            }
+        });
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                var lat = pos.coords.latitude;
+                var lng = pos.coords.longitude;
+                map.setView([lat, lng], 15);
+                document.getElementById('latitude').value = lat.toFixed(6);
+                document.getElementById('longitude').value = lng.toFixed(6);
+                document.getElementById('coord-display').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng]).addTo(map);
+                }
+            }, function() {
+            });
+        }
+    });
+
+    function toggleDescriptionRequired() {
+        var type = document.getElementById('type').value;
+        var desc = document.getElementById('description');
+        var descRequired = document.getElementById('desc-required');
+
+        if (type === 'other') {
+            desc.required = true;
+            descRequired.style.display = 'inline';
+        } else {
+            desc.required = false;
+            descRequired.style.display = 'none';
+        }
+    }
+</script>
 {% endblock %}
